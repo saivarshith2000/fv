@@ -1,6 +1,11 @@
 # ccls cache
 .ccls*
 
+# build dirs
+build/
+fv
+
+
 # Prerequisites
 *.d
 

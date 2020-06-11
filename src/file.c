@@ -28,24 +28,24 @@ static int read_file(struct file *f)
     size_t len = 0;
     size_t nread = 0;
     size_t line_count = 0;
-    struct filerow *head = malloc(sizeof(struct filerow));
-    if ((nread = getline(&line, &len, f->fptr)) == -1) {
-        free(head);
-        return -1;
-    }
-    head->line = line;
-    head->len = len;
-    line_count++;
-    struct filerow *prev = head;
-    while((nread = getline(&line, &len, f->fptr))) {
+    struct filerow *head = NULL;
+    struct filerow *prev = NULL;
+    while((nread = getline(&line, &len, f->fptr)) != -1) {
         struct filerow *row = malloc(sizeof(struct filerow));
-        row->line = line;
+        row->line = malloc(len);
+        memcpy(row->line, line, len);
         row->len = len;
-        prev->next = row;
-        prev = row;
+        row->next = NULL;
+        if (head == NULL) {
+            head = row;
+            prev = head;
+        } else {
+            prev->next = row;
+            prev = row;
+        }
         line_count++;
     }
-    prev->next = NULL;
+    free(line);
     f->contents = head;
     f->line_count = line_count;
     return 0;

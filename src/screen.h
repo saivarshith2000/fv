@@ -3,6 +3,6 @@
 
 #include "file.h"
 
-void refresh_screen(int trows, int tcols, int frows, );
+void refresh_screen(int trows, int tcols, int line_count, struct filerow *contents);
 
 #endif

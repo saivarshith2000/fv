@@ -85,8 +85,11 @@ static void init_fv()
     config.f =  handle_file(config.filename);
 
     /* testing lol */
-    printf("File has %d lines\n", config.f->line_count);
-    exit(0);
+    struct filerow *cursor = config.f->contents;
+    while(cursor != NULL) {
+        printf("%s", cursor->line);
+        cursor = cursor->next;
+    }
 }
 
 /* returns the number of columns and rows in the terminal window
