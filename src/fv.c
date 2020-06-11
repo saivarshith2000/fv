@@ -18,30 +18,88 @@
     Author Email: hosvarshith@gmail.com
 */
 
-
 #include "fv.h"
+#include "file.h"
+
+/* the fv struct contains all the terminal and file variables in one place */
+struct fv {
+    struct termios orig;     /* termios struct before going into raw mode */
+    int trows, tcols;        /* rows and columns of the terminal screen */
+    char *filename;          /* name of the file open with fv */
+    struct file *f;          /* pointer to the file struct. see src/file.h */
+};
 
 /* prototypes */
+static void parse_args();
 static void init_fv();
+static void get_window_size();
 static void enable_raw_mode();
 static void disable_raw_mode();
+static void refresh_screen();
+static void process_input();
 
 /* global fv struct */
 static struct fv config;
 
-int main()
+int main(int argc, char *argv[])
 {
+    parse_args();
     init_fv();
     enable_raw_mode();
     while(1) {
-
+        refresh_screen();
+        process_input();
     }
     return EXIT_SUCCESS;
+}
+
+/* prints the contents of file */
+static void refresh_screen()
+{
+    /* set cursor to upper left corner */
+    write(STDOUT_FILENO, "\x1b[H", 3);
+}
+
+/* process user input */
+static void process_input()
+{
+
+}
+
+/* Parses runtime arguments */
+static void parse_args(int argc, char *argv[])
+{
+    if (argc == 1){
+        printf("A filename argument is required.\n");
+        exit(EXIT_FAILURE);
+    }
+    config.filename = argv[1];
 }
 
 /* Initialises the config struct */
 static void init_fv()
 {
+    /* obtain window size */
+    get_window_size(&config.trows, &config.tcols);
+    /* read file contents */
+    config.f =  handle_file(config.filename);
+
+    /* testing lol */
+    printf("File has %d lines\n", config.f->line_count);
+    exit(0);
+}
+
+/* returns the number of columns and rows in the terminal window
+ * via *rows and *cols pointers. It uses ioctl() syscall to obtain
+ * this information. It it fails, DIE() macro is called
+ */
+static void get_window_size(int *rows, int *cols)
+{
+    struct winsize ws;
+    if (ioctl(1, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0)
+        DIE("Failed to obtain window size.");
+    *rows = ws.ws_row;
+    *cols = ws.ws_col;
 }
 
 /* stores original termios struct and switches terminal raw mode.

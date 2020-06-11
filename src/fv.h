@@ -27,6 +27,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <termios.h>
+#include <sys/ioctl.h>
 
 /* A simple exit macro which displays an error message and exits */
 #define DIE(msg) {\
@@ -34,10 +35,5 @@
     fprintf(stderr, "AT: %d in %s\n", __LINE__, __FILE__);\
     fprintf(stderr, "ERRNO: %d (%s)", errno, strerror(errno)); \
     exit(EXIT_FAILURE);}
-
-struct fv {
-    struct termios orig;     /* termios struct before going into raw mode */
-    int trows, tcols;        /* rows and columns of the terminal screen */
-};
 
 #endif /* _FV_H_ */
