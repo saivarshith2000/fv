@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
     enable_raw_mode();
     clear_screen();
     while(1) {
-        refresh_screen(config.trows, config.tcols, config.f->line_count, config.voffset, config.f->contents);
+        refresh_screen(&config);
         if (process_input(&config) == -1)
             quit();
     }

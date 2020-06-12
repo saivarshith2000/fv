@@ -77,6 +77,7 @@ struct fv_file* handle_file(char *filename)
     if(fptr == NULL)
         DIE("fopen() failed");
     struct fv_file *f = malloc(sizeof(struct fv_file));
+    f->filename = filename;
     f->fptr = fptr;
     f->contents = malloc(sizeof(struct filerow * ) * ROW_STEP);
     f->line_capacity = ROW_STEP;

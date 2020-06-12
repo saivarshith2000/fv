@@ -32,6 +32,7 @@ struct filerow {
 };
 
 struct fv_file {
+    char *filename;
     FILE *fptr;
     int line_count;
     int line_capacity;
