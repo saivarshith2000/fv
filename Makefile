@@ -1,5 +1,6 @@
 CC := gcc
-CFLAGS := -Wall -Werror
+CFLAGS := -Wall -g
+TERM := kitty
 
 SRC_DIR := src
 OBJ_DIR := build
@@ -9,6 +10,9 @@ OBJ_FILES := $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SRC_FILES))
 DIRS := build
 
 $(shell mkdir -p $(DIRS))
+
+run: fv
+	${TERM} ./fv src/fv.c
 
 fv: $(OBJ_FILES)
 	${CC} ${CFLAGS} ${OBJ_FILES} -o $@

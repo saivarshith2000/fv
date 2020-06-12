@@ -19,6 +19,7 @@
 */
 
 #include "fv.h"
+#include "screen.h"
 #include "file.h"
 
 /* the fv struct contains all the terminal and file variables in one place */
@@ -35,7 +36,6 @@ static void init_fv();
 static void get_window_size();
 static void enable_raw_mode();
 static void disable_raw_mode();
-static void refresh_screen();
 static void process_input();
 
 /* global fv struct */
@@ -46,24 +46,18 @@ int main(int argc, char *argv[])
     parse_args();
     init_fv();
     enable_raw_mode();
+    clear_screen();
     while(1) {
-        refresh_screen();
+        refresh_screen(config.trows, config.tcols, config.f->line_count, config.f->contents);
         process_input();
     }
     return EXIT_SUCCESS;
 }
 
-/* prints the contents of file */
-static void refresh_screen()
-{
-    /* set cursor to upper left corner */
-    write(STDOUT_FILENO, "\x1b[H", 3);
-}
-
 /* process user input */
 static void process_input()
 {
-
+    while(1);
 }
 
 /* Parses runtime arguments */
@@ -82,14 +76,7 @@ static void init_fv()
     /* obtain window size */
     get_window_size(&config.trows, &config.tcols);
     /* read file contents */
-    config.f =  handle_file(config.filename);
-
-    /* testing lol */
-    struct filerow *cursor = config.f->contents;
-    while(cursor != NULL) {
-        printf("%s", cursor->line);
-        cursor = cursor->next;
-    }
+    config.f = handle_file(config.filename);
 }
 
 /* returns the number of columns and rows in the terminal window
