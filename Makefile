@@ -10,9 +10,6 @@ DIRS := build
 
 $(shell mkdir -p $(DIRS))
 
-run: fv
-	./fv src/fv.c
-
 fv: $(OBJ_FILES)
 	${CC} ${CFLAGS} ${OBJ_FILES} -o $@
 
