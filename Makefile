@@ -1,6 +1,5 @@
 CC := gcc
 CFLAGS := -Wall -g
-TERM := kitty
 
 SRC_DIR := src
 OBJ_DIR := build
@@ -12,7 +11,7 @@ DIRS := build
 $(shell mkdir -p $(DIRS))
 
 run: fv
-	${TERM} ./fv src/fv.c
+	./fv src/fv.c
 
 fv: $(OBJ_FILES)
 	${CC} ${CFLAGS} ${OBJ_FILES} -o $@

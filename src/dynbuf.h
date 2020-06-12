@@ -18,4 +18,5 @@ struct dynbuf {
 /* prototypes */
 int dynbuf_insert(struct dynbuf *dynbuf, const char *str, int len);
 void dynbuf_free(struct dynbuf *dyn);
-#endif
+
+#endif /* _DYNBUF_H_ */

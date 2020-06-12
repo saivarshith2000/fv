@@ -21,7 +21,7 @@
 #include "fv.h"
 #include "screen.h"
 #include "input.h"
-#include "file.h"
+#include "fv_file.h"
 
 /* prototypes */
 static void parse_args();
@@ -29,6 +29,7 @@ static void init_fv();
 static void get_window_size();
 static void enable_raw_mode();
 static void disable_raw_mode();
+static void quit();
 
 /* global fv struct */
 static struct fv config;
@@ -41,7 +42,8 @@ int main(int argc, char *argv[])
     clear_screen();
     while(1) {
         refresh_screen(config.trows, config.tcols, config.f->line_count, config.voffset, config.f->contents);
-        process_input(&config);
+        if (process_input(&config) == -1)
+            quit();
     }
     return EXIT_SUCCESS;
 }
@@ -88,7 +90,7 @@ static void enable_raw_mode()
     if (tcgetattr(STDIN_FILENO, &(config.orig)) == -1)
         DIE("Failed to obtain terminal attributes.");
     /* register disable_raw_mode() to be called at exit */
-    if (atexit(disable_raw_mode) != 0)
+    if (atexit(quit) != 0)
         DIE("Failed to register exit function");
     struct termios raw = config.orig;
     raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
@@ -105,8 +107,17 @@ static void enable_raw_mode()
  * of the program. This function is automatically called during normal
  * exit (this includes DIE()).
  */
-static void disable_raw_mode(void *arg)
+static void disable_raw_mode()
 {
     if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &config.orig) == -1)
         DIE("Failed to switch back to canonical mode.");
+}
+
+/* cleanup memory and exit */
+static void quit()
+{
+    /* restore terminal */
+    clear_screen();
+    disable_raw_mode();
+    exit(EXIT_SUCCESS);
 }

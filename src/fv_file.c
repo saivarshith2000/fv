@@ -1,6 +1,26 @@
+/*
+    fv: A simple terminal based file viewer.
+    Copyright (C) 2020  Sai Varshith
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+    Author Email: hosvarshith@gmail.com
+*/
+
 #include <sys/stat.h>
 
-#include "file.h"
+#include "fv_file.h"
 #include "fv.h"
 
 /* checks if a REGULAR file 'filename' exists */
@@ -17,7 +37,7 @@ static void verfiy_file(char *filename)
 }
 
 /* inserts a new row into the dynamic contents array */
-static void insert_row(struct file *f, struct filerow *row)
+static void insert_row(struct fv_file *f, struct filerow *row)
 {
     if (f->line_count == f->line_capacity) {
         f->contents = realloc(f->contents, sizeof(struct filerow*) * (f->line_capacity + ROW_STEP));
@@ -28,14 +48,11 @@ static void insert_row(struct file *f, struct filerow *row)
 }
 
 /* Reads file and stores the lines read in the dynamic array 'contents' */
-static int read_file(struct file *f)
+static int read_file(struct fv_file *f)
 {
     char *line = NULL;
     size_t linelen = 0;
     size_t linecap = 0;
-    size_t line_count = 0;
-    struct filerow *head = NULL;
-    struct filerow *prev = NULL;
     while((linelen = getline(&line, &linecap, f->fptr)) != -1) {
         while(linelen > 0 && (line[linelen-1] == '\n' || line[linelen-1] == '\r'))
             linelen--;
@@ -51,7 +68,7 @@ static int read_file(struct file *f)
 }
 
 /* reads the contents of file 'filename' and returns a struct file pointer */
-struct file* handle_file(char *filename)
+struct fv_file* handle_file(char *filename)
 {
     /* verfiy if file exists */
     verfiy_file(filename);
@@ -59,7 +76,7 @@ struct file* handle_file(char *filename)
     FILE *fptr = fopen(filename, "r");
     if(fptr == NULL)
         DIE("fopen() failed");
-    struct file *f = malloc(sizeof(struct file));
+    struct fv_file *f = malloc(sizeof(struct fv_file));
     f->fptr = fptr;
     f->contents = malloc(sizeof(struct filerow * ) * ROW_STEP);
     f->line_capacity = ROW_STEP;

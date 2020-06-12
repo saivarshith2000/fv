@@ -18,11 +18,26 @@
     Author Email: hosvarshith@gmail.com
 */
 
-#ifndef _INPUT_H_
-#define _INPUT_H_
+#ifndef _FILE_H_
+#define _FILE_H_
 
-#include "fv.h"
+#define _GNU_SOURCE
+#include <stdio.h>
 
-int process_input(struct fv *config);
+#define ROW_STEP 64
 
-#endif /* _INPUT_H_ */
+struct filerow {
+    char *line;
+    size_t len;
+};
+
+struct fv_file {
+    FILE *fptr;
+    int line_count;
+    int line_capacity;
+    struct filerow **contents;
+};
+
+struct fv_file *handle_file(char *filename);
+
+#endif /* _FV_H_ */

@@ -29,7 +29,7 @@
 #include <termios.h>
 #include <sys/ioctl.h>
 
-#include "file.h"
+#include "fv_file.h"
 
 /* A simple exit macro which displays an error message and exits */
 #define DIE(msg) {\
@@ -43,9 +43,8 @@ struct fv {
     struct termios orig;     /* termios struct before going into raw mode */
     int trows, tcols;        /* rows and columns of the terminal screen */
     char *filename;          /* name of the file open with fv */
-    struct file *f;          /* pointer to the file struct. see src/file.h */
+    struct fv_file *f;       /* pointer to the file struct. see src/file.h */
     int voffset;             /* vertical offset. Used in vertival scrolling */
 };
-
 
 #endif /* _FV_H_ */
