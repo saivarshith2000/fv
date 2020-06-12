@@ -9,7 +9,7 @@ Simple terminal based file viewer
 4. Fast :)
 
 ### Keybinds:
-1. h,j - for scrolling up and down respectively.
+1. j,k - for scrolling up and down respectively.
 2. g - go to top of the file.
 3. G - go to bottom of the file.
 4. q - quit
