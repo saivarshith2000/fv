@@ -1,3 +1,4 @@
+#include <string.h>
 #include <stdlib.h>
 #include "dynbuf.h"
 
@@ -17,11 +18,14 @@ int dynbuf_insert(struct dynbuf *dyn, const char *str, int len)
 {
     if (dyn == NULL)
         return -1;
-    if (dyn->len - dyn->ptr >= len) {
-        /* if there is enough free space in the buffer */
-    } else {
-        /* realloc() a new chuck and copy here */
+    if (dyn->len - dyn->ptr < len) {
+        /* realloc() a new chunk if buffer runs out of memory */
+        char *newbuf = realloc(dyn->buf, dyn->len + DYNBUF_CHUNK_SIZE);
+        dyn->len += DYNBUF_CHUNK_SIZE;
+        dyn->buf = newbuf;
     }
+    memcpy(dyn->buf + dyn->ptr, str, len);
+    dyn->ptr += len;
     return 0;
 }
 
