@@ -20,15 +20,8 @@
 
 #include "fv.h"
 #include "screen.h"
+#include "input.h"
 #include "file.h"
-
-/* the fv struct contains all the terminal and file variables in one place */
-struct fv {
-    struct termios orig;     /* termios struct before going into raw mode */
-    int trows, tcols;        /* rows and columns of the terminal screen */
-    char *filename;          /* name of the file open with fv */
-    struct file *f;          /* pointer to the file struct. see src/file.h */
-};
 
 /* prototypes */
 static void parse_args();
@@ -36,7 +29,6 @@ static void init_fv();
 static void get_window_size();
 static void enable_raw_mode();
 static void disable_raw_mode();
-static void process_input();
 
 /* global fv struct */
 static struct fv config;
@@ -48,16 +40,10 @@ int main(int argc, char *argv[])
     enable_raw_mode();
     clear_screen();
     while(1) {
-        refresh_screen(config.trows, config.tcols, config.f->line_count, config.f->contents);
-        process_input();
+        refresh_screen(config.trows, config.tcols, config.f->line_count, config.voffset, config.f->contents);
+        process_input(&config);
     }
     return EXIT_SUCCESS;
-}
-
-/* process user input */
-static void process_input()
-{
-    while(1);
 }
 
 /* Parses runtime arguments */
@@ -77,6 +63,8 @@ static void init_fv()
     get_window_size(&config.trows, &config.tcols);
     /* read file contents */
     config.f = handle_file(config.filename);
+    /* set vertical offset to zero */
+    config.voffset = 0;
 }
 
 /* returns the number of columns and rows in the terminal window

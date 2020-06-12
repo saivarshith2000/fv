@@ -29,11 +29,23 @@
 #include <termios.h>
 #include <sys/ioctl.h>
 
+#include "file.h"
+
 /* A simple exit macro which displays an error message and exits */
 #define DIE(msg) {\
     fprintf(stderr, "ERROR: %s\n", msg);\
     fprintf(stderr, "AT: %d in %s\n", __LINE__, __FILE__);\
     fprintf(stderr, "ERRNO: %d (%s)", errno, strerror(errno)); \
     exit(EXIT_FAILURE);}
+
+/* the fv struct contains all the terminal and file variables in one place */
+struct fv {
+    struct termios orig;     /* termios struct before going into raw mode */
+    int trows, tcols;        /* rows and columns of the terminal screen */
+    char *filename;          /* name of the file open with fv */
+    struct file *f;          /* pointer to the file struct. see src/file.h */
+    int voffset;             /* vertical offset. Used in vertival scrolling */
+};
+
 
 #endif /* _FV_H_ */
