@@ -32,11 +32,12 @@ struct filerow {
 };
 
 struct fv_file {
-    char *filename;
-    FILE *fptr;
-    int line_count;
-    int line_capacity;
-    struct filerow **contents;
+    char *filename;             /* name of the file */
+    int filename_len;           /* strlen() of the filename */
+    FILE *fptr;                 /* file pointer */
+    int line_count;             /* total number of lines in the file */
+    struct filerow **contents;  /* dynamic array of filerows */
+    int line_capacity;          /* current capacity of the contents array */
 };
 
 struct fv_file *handle_file(char *filename);

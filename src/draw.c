@@ -21,7 +21,7 @@
 #include <unistd.h>
 #include <string.h>
 
-#include "screen.h"
+#include "draw.h"
 #include "dynbuf.h"
 
 /* clear screen */

@@ -19,7 +19,7 @@
 */
 
 #include "fv.h"
-#include "screen.h"
+#include "draw.h"
 #include "input.h"
 #include "fv_file.h"
 
