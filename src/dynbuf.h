@@ -9,7 +9,7 @@
 struct dynbuf {
     char *buf;   /* pointer to buffer */
     int ptr;     /* pointer to the first empty space in buffer */
-    int size;     /* length of buffer */
+    int size;    /* length of buffer */
 };
 
 /* simple macro to init a dynbuf */

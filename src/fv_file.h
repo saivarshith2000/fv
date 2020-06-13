@@ -36,6 +36,7 @@ struct fv_file {
     int filename_len;           /* strlen() of the filename */
     FILE *fptr;                 /* file pointer */
     int line_count;             /* total number of lines in the file */
+    int line_count_digs;        /* number of digits in line count */
     struct filerow **contents;  /* dynamic array of filerows */
     int line_capacity;          /* current capacity of the contents array */
 };

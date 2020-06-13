@@ -23,6 +23,17 @@
 #include "fv_file.h"
 #include "fv.h"
 
+/* counts the number of digits in n */
+static int count_digs(int n)
+{
+    int count = 0;
+    while(n > 1) {
+        count++;
+        n /= 10;
+    }
+    return count;
+}
+
 /* checks if a REGULAR file 'filename' exists */
 static void verfiy_file(char *filename)
 {
@@ -63,6 +74,7 @@ static int read_file(struct fv_file *f)
         row->len = linelen + 1;
         insert_row(f, row);
     }
+    f->line_count_digs = count_digs(f->line_count);
     free(line);
     return 0;
 }
@@ -78,6 +90,7 @@ struct fv_file* handle_file(char *filename)
         DIE("fopen() failed");
     struct fv_file *f = malloc(sizeof(struct fv_file));
     f->filename = filename;
+    f->filename_len = strlen(filename);
     f->fptr = fptr;
     f->contents = malloc(sizeof(struct filerow * ) * ROW_STEP);
     f->line_capacity = ROW_STEP;

@@ -31,14 +31,21 @@ void clear_screen()
 }
 
 /* draws a status bar at the bottom of the screen */
-static void status_bar(struct fv *config, struct dynbuf *dyn)
+static void status_bar(struct fv *cfg, struct dynbuf *dyn)
 {
-    /* place cursor at the bottom row of the screen and invert colors*/
-    int fnamelen = strlen(config->filename);
-    int buflen = fnamelen + config->tcols + 16;
-    char buf[buflen];
-    sprintf(buf, "\x1b[%d;0H \x1b[7m %s %*c\x1b[27m", config->trows, config->filename, config->tcols-fnamelen - 3, ' ');
-    dynbuf_insert(dyn, buf, strlen(buf));
+    /* place cursor at the bottom row of the screen and invert colors */
+    char temp[16];
+    sprintf(temp, "\x1b[%d;0H\x1b[7m", cfg->trows-1);
+    dynbuf_insert(dyn, temp, strlen(temp));
+    char status[cfg->tcols + 16];
+    sprintf(status, " viewing: %s [%d/%d]", cfg->f->filename, cfg->voffset, cfg->f->line_count);
+    dynbuf_insert(dyn, status, strlen(status));
+    /* fill out bar with spaces */
+    int i = 0;
+    int space = cfg->tcols - strlen(status);
+    while(i++ < space)
+        dynbuf_insert(dyn, " ", 1);
+    dynbuf_insert(dyn, "\x1b[27m", 5);
 }
 
 /* refreshes terminal screen. This function is called on every valid input */
@@ -47,26 +54,27 @@ void refresh_screen(struct fv *cfg)
     struct dynbuf dyn = DYNBUF_INIT;
     dynbuf_insert(&dyn, "\x1b[?25l", 6);
     dynbuf_insert(&dyn, "\x1b[H", 3);
-    int i = 0;
-    int line_count = cfg->f->line_count;
-    int trows = cfg->trows - 2;
-    int tcols = cfg->tcols;
-    int voffset = cfg->voffset;
+    /* 2 rows are reserved for status bar and prompt */
     struct filerow **contents = cfg->f->contents;
-    int min = line_count - voffset < trows ? line_count - voffset : trows;
-    while(i < min && (i + voffset) < line_count) {
-        /* print line number */
-        char num[32];
-        sprintf(num, "%3d | ", i+1+voffset);
+    int line_count_digs = cfg->f->line_count_digs;
+    int trows = cfg->trows - 3;
+    int line_count = cfg->f->line_count;
+    int i = cfg->voffset;
+    int lines_drawn = 0;
+    /* draw lines till are all lines are drawn or rows are unavailable */
+    while(lines_drawn < trows && i < line_count) {
+        /* clear line */
+        dynbuf_insert(&dyn, "\x1b[K", 3);
+        /* draw line number */
+        char num[line_count_digs];
+        sprintf(num, "%*d. |", line_count_digs, i + 1);
         dynbuf_insert(&dyn, num, strlen(num));
-        struct filerow *row = contents[i + voffset];
-        dynbuf_insert(&dyn, row->line, (row->len > tcols ? tcols : row->len));
-        if (i == min - 1){
-            dynbuf_insert(&dyn, "\x1b[K", 3);
-        } else {
-            dynbuf_insert(&dyn, "\x1b[K\r\n", 5);
-        }
+        /* draw line */
+        dynbuf_insert(&dyn, contents[i]->line, contents[i]->len);
+        /* draw newline and carriage return */
+        dynbuf_insert(&dyn, "\r\n", 2);
         i++;
+        lines_drawn++;
     }
     /* draw status bar */
     status_bar(cfg, &dyn);
