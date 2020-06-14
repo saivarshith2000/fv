@@ -87,6 +87,9 @@ static void get_window_size(int *rows, int *cols)
  */
 static void enable_raw_mode()
 {
+    /* switch to alternate screen buffer */
+    write(STDOUT_FILENO, "\x1b[?1049h", 8);
+
     if (tcgetattr(STDIN_FILENO, &(config.orig)) == -1)
         DIE("Failed to obtain terminal attributes.");
     /* register disable_raw_mode() to be called at exit */
@@ -101,6 +104,7 @@ static void enable_raw_mode()
     raw.c_cc[VTIME] = 1;
     if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) == -1)
         DIE("Failed to switch to raw mode");
+
 }
 
 /* switches the terminal to whatever mode it was in before the start
@@ -111,6 +115,8 @@ static void disable_raw_mode()
 {
     if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &config.orig) == -1)
         DIE("Failed to switch back to canonical mode.");
+    /* switch back to original screen buffer */
+    write(STDOUT_FILENO, "\x1b[?1049l", 8);
 }
 
 /* cleanup memory and exit */
@@ -119,5 +125,11 @@ static void quit()
     /* restore terminal */
     clear_screen();
     disable_raw_mode();
-    exit(EXIT_SUCCESS);
+    /* free file memory */
+    int i = 0;
+    for(i = 0; i < config.f->line_count; i++) {
+        free(config.f->contents[i]->line);
+        free(config.f->contents[i]);
+    }
+    return ;
 }

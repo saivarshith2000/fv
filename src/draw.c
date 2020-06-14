@@ -67,7 +67,7 @@ void refresh_screen(struct fv *cfg)
         dynbuf_insert(&dyn, "\x1b[K", 3);
         /* draw line number */
         char num[line_count_digs + 3];
-        sprintf(num, "%*d. |", line_count_digs, i + 1);
+        sprintf(num, "%*d. | ", line_count_digs, i + 1);
         dynbuf_insert(&dyn, num, strlen(num));
         /* draw line */
         dynbuf_insert(&dyn, contents[i]->line, contents[i]->len);

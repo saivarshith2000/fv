@@ -70,7 +70,7 @@ int process_input(struct fv *config)
             }
         case 'q': {
                 /* quit */
-                return -1;
+                exit(EXIT_SUCCESS);
             }
     }
     return 0;
