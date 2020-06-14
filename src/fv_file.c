@@ -27,7 +27,7 @@
 static int count_digs(int n)
 {
     int count = 0;
-    while(n > 1) {
+    while(n != 0) {
         count++;
         n /= 10;
     }

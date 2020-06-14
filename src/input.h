@@ -23,6 +23,6 @@
 
 #include "fv.h"
 
-int process_input(struct fv *config);
+void process_input(struct fv *config);
 
 #endif /* _INPUT_H_ */

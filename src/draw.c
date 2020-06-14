@@ -38,7 +38,7 @@ static void status_bar(struct fv *cfg, struct dynbuf *dyn)
     sprintf(temp, "\x1b[%d;0H\x1b[7m", cfg->trows-1);
     dynbuf_insert(dyn, temp, strlen(temp));
     char status[cfg->tcols + 16];
-    sprintf(status, " viewing: %s [%d/%d]", cfg->f->filename, cfg->voffset, cfg->f->line_count);
+    sprintf(status, " File: %s [%d/%d]", cfg->f->filename, cfg->voffset, cfg->f->line_count);
     dynbuf_insert(dyn, status, strlen(status));
     /* fill out bar with spaces */
     int i = 0;
@@ -67,7 +67,7 @@ void refresh_screen(struct fv *cfg)
         dynbuf_insert(&dyn, "\x1b[K", 3);
         /* draw line number */
         char num[line_count_digs + 3];
-        sprintf(num, "%*d. | ", line_count_digs, i + 1);
+        sprintf(num, "%*d| ", line_count_digs, i + 1);
         dynbuf_insert(&dyn, num, strlen(num));
         /* draw line */
         dynbuf_insert(&dyn, contents[i]->line, contents[i]->len);

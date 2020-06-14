@@ -42,8 +42,7 @@ int main(int argc, char *argv[])
     clear_screen();
     while(1) {
         refresh_screen(&config);
-        if (process_input(&config) == -1)
-            quit();
+        process_input(&config);
     }
     return EXIT_SUCCESS;
 }
