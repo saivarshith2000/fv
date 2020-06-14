@@ -58,6 +58,38 @@ static void scroll_down(struct fv *cfg, int n)
         cfg->voffset = max_voffset;
 }
 
+/* handles input starting with a number. */
+void handle_numeric(int first_key, struct fv *config)
+{
+    int key = first_key;
+    int num = key - 48;
+    while((key = read_key())){
+        if (key >= '0' && key <= '9') {
+            num *= 10;
+            num += key - 48;
+        } else if (key == '\r' || key == '\n') {
+            /* jump to line number num */
+            config->voffset = 0;
+            if (num == 0)
+                break;
+            scroll_down(config, num - 1);
+            break;
+        } else if (key == 'j') {
+            /* scrolling down num lines */
+            scroll_down(config, num);
+            break;
+        } else if (key == 'k') {
+            /* scrolling up num lines */
+            scroll_up(config, num);
+            break;
+        } else {
+            /* invalid input */
+            break;
+        }
+    }
+    return ;
+}
+
 /* Obtains user input via read_key() and modifies the state of fv struct */
 void process_input(struct fv *config)
 {
@@ -65,57 +97,36 @@ void process_input(struct fv *config)
 
     /* handle numeric input */
     if (key >= '0' && key <= '9') {
-        int num = key - 48;
-        while((key = read_key())){
-            if (key >= '0' && key <= '9') {
-                num *= 10;
-                num += key - 48;
-            } else if (key == '\r' || key == '\n') {
-                /* jump to line number num */
-                config->voffset = num > 1 ? num - 1 : num;
-                break;
-            } else if (key == 'j') {
-                /* scrolling down num lines */
-                scroll_down(config, num);
-                break;
-            } else if (key == 'k') {
-                /* scrolling up num lines */
-                scroll_up(config, num);
-                break;
-            } else {
-                /* invalid input */
-                break;
-            }
-        }
+        handle_numeric(key, config);
         return ;
     }
 
     struct fv_file *f = config->f;
     switch(key) {
-    case 'j':
-        /* scroll down 1 line */
-        scroll_down(config, 1);
-        break;
+        case 'j':
+            /* scroll down 1 line */
+            scroll_down(config, 1);
+            break;
 
-    case 'k':
-        /* scroll up 1 line */
-        scroll_up(config, 1);
-        break;
+        case 'k':
+            /* scroll up 1 line */
+            scroll_up(config, 1);
+            break;
 
-    case 'g':
-        /* scroll to top */
-        config->voffset = 0;
-        break;
+        case 'g':
+            /* scroll to top */
+            config->voffset = 0;
+            break;
 
-    case 'G':
-        /* scroll to bottom */
-        if (f->line_count - config->voffset > config->trows + 3)
-            config->voffset = f->line_count - config->trows + 3;
-        break;
+        case 'G':
+            /* scroll to bottom */
+            if (f->line_count - config->voffset > config->trows + 3)
+                config->voffset = f->line_count - config->trows + 3;
+            break;
 
-    case 'q':
-        /* quit */
-        exit(EXIT_SUCCESS);
+        case 'q':
+            /* quit */
+            exit(EXIT_SUCCESS);
     }
     return ;
 }
