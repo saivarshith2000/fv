@@ -62,11 +62,10 @@ static void scroll_down(struct fv *cfg, int n)
 void process_input(struct fv *config)
 {
     int key = read_key();
-    struct fv_file *f = config->f;
 
+    /* handle numeric input */
     if (key >= '0' && key <= '9') {
-        /* handle numeric input */
-        char num = key - 48;
+        int num = key - 48;
         while((key = read_key())){
             if (key >= '0' && key <= '9') {
                 num *= 10;
@@ -91,17 +90,18 @@ void process_input(struct fv *config)
         return ;
     }
 
+    struct fv_file *f = config->f;
     switch(key) {
     case 'j':
         /* scroll down 1 line */
-        if (f->line_count - config->voffset > config->trows - 3)
-            config->voffset++;
+        scroll_down(config, 1);
         break;
 
     case 'k':
         /* scroll up 1 line */
         scroll_up(config, 1);
         break;
+
     case 'g':
         /* scroll to top */
         config->voffset = 0;
