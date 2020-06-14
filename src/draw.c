@@ -55,9 +55,9 @@ void refresh_screen(struct fv *cfg)
     dynbuf_insert(&dyn, "\x1b[?25l", 6);
     dynbuf_insert(&dyn, "\x1b[H", 3);
     /* 2 rows are reserved for status bar and prompt */
+    int trows = cfg->trows - 3;
     struct filerow **contents = cfg->f->contents;
     int line_count_digs = cfg->f->line_count_digs;
-    int trows = cfg->trows - 3;
     int line_count = cfg->f->line_count;
     int i = cfg->voffset;
     int lines_drawn = 0;
@@ -66,7 +66,7 @@ void refresh_screen(struct fv *cfg)
         /* clear line */
         dynbuf_insert(&dyn, "\x1b[K", 3);
         /* draw line number */
-        char num[line_count_digs];
+        char num[line_count_digs + 3];
         sprintf(num, "%*d. |", line_count_digs, i + 1);
         dynbuf_insert(&dyn, num, strlen(num));
         /* draw line */

@@ -43,35 +43,32 @@ static int read_key()
 int process_input(struct fv *config)
 {
     int key = read_key();
+    struct fv_file *f = config->f;
     switch(key) {
-        case 'j':
-            {
+        case 'j': {
                 /* scroll down 1 line */
-                if (config->f->line_count - config->voffset > config->trows)
+                if (f->line_count - config->voffset > config->trows - 3)
                     config->voffset++;
                 break;
             }
-        case 'k':
-            {
+        case 'k': {
                 /* scroll up 1 line */
                 if (config->voffset != 0)
                     config->voffset--;
                 break;
             }
-        case 'g':
-            {
+        case 'g': {
                 /* scroll to top */
                 config->voffset = 0;
                 break;
             }
-        case 'G':
-            {
+        case 'G': {
                 /* scroll to bottom */
-                config->voffset = config->f->line_count - config->trows;
+                if (f->line_count - config->voffset > config->trows + 3)
+                    config->voffset = f->line_count - config->trows + 3;
                 break;
             }
-        case 'q':
-            {
+        case 'q': {
                 /* quit */
                 return -1;
             }

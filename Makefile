@@ -1,5 +1,5 @@
 CC := gcc
-CFLAGS := -Wall -g -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
+CFLAGS := -Wall -g
 
 SRC_DIR := src
 OBJ_DIR := build
