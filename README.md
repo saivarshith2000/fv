@@ -1,8 +1,9 @@
 # fv
-  
-Simple terminal based file viewer  
-  
+
+Simple terminal based file viewer
+
 [![Build Status](https://travis-ci.com/saivarshith2000/fv.svg?branch=master)](https://travis-ci.com/saivarshith2000/fv)
+[![GitHub license](https://img.shields.io/github/license/saivarshith2000/fv)](https://github.com/saivarshith2000/fv/blob/master/LICENSE)
 
 ### Features:
 1. Search
