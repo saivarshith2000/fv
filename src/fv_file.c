@@ -51,7 +51,14 @@ static void verfiy_file(char *filename)
 static void insert_row(struct fv_file *f, struct filerow *row)
 {
     if (f->line_count == f->line_capacity) {
-        f->contents = realloc(f->contents, sizeof(struct filerow*) * (f->line_capacity + ROW_STEP));
+        struct filerow **newmem = realloc(f->contents, sizeof(struct filerow*) * (f->line_capacity + ROW_STEP));
+        if (newmem == NULL) {
+            /* realloc failed */
+            free(f->contents);
+            free(f);
+            exit(EXIT_FAILURE);
+        }
+        f->contents = newmem;
         f->line_capacity += ROW_STEP;
     }
     f->contents[f->line_count++] = row;

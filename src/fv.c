@@ -60,12 +60,19 @@ static void parse_args(int argc, char *argv[])
 /* Initialises the config struct */
 static void init_fv()
 {
+    /* register disable_raw_mode() to be called at exit */
+    if (atexit(quit) != 0)
+        DIE("Failed to register exit function");
     /* obtain window size */
     get_window_size(&config.trows, &config.tcols);
     /* read file contents */
     config.f = handle_file(config.filename);
     /* set vertical offset to zero */
     config.voffset = 0;
+    /* initial prompt */
+    config.prompt = malloc(config.tcols);
+    memset(config.prompt, '\0', config.tcols);
+    config.prompt_idx = 0;
 }
 
 /* returns the number of columns and rows in the terminal window
@@ -91,14 +98,12 @@ static void enable_raw_mode()
 
     if (tcgetattr(STDIN_FILENO, &(config.orig)) == -1)
         DIE("Failed to obtain terminal attributes.");
-    /* register disable_raw_mode() to be called at exit */
-    if (atexit(quit) != 0)
-        DIE("Failed to register exit function");
     struct termios raw = config.orig;
     raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
     raw.c_oflag &= ~(OPOST);
     raw.c_cflag |= (CS8);
     raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG);
+    /* raw.c_lflag &= ~(ECHO | ICANON | IEXTEN); */
     raw.c_cc[VMIN] = 0;
     raw.c_cc[VTIME] = 1;
     if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) == -1)
@@ -124,7 +129,11 @@ static void quit()
     /* restore terminal */
     clear_screen();
     disable_raw_mode();
-    /* free file memory */
+    /* free file memory. If a relloc() error occured in read_file(), already
+     * allocated memory is freed and exit() is called. In that case, config.f
+     * is already NULL so don't free it again !*/
+    if (config.f == NULL)
+        return ;
     int i = 0;
     for(i = 0; i < config.f->line_count; i++) {
         free(config.f->contents[i]->line);

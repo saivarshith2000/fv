@@ -44,7 +44,9 @@ struct fv {
     int trows, tcols;        /* rows and columns of the terminal screen */
     char *filename;          /* name of the file open with fv */
     struct fv_file *f;       /* pointer to the file struct. see src/file.h */
-    int voffset;             /* vertical offset. Used in vertival scrolling */
+    int voffset;             /* vertical offset. Used in vertical scrolling */
+    char *prompt;            /* prompt below status bar */
+    int prompt_idx;          /* index of the next character in prompt */
 };
 
 #endif /* _FV_H_ */

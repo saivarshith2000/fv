@@ -12,7 +12,14 @@ int dynbuf_insert(struct dynbuf *dyn, const char *str, int len)
         return -1;
     if (dyn->size - dyn->ptr < len) {
         /* realloc() a new chunk if buffer runs out of memory */
-        dyn->buf = realloc(dyn->buf, dyn->size + DYNBUF_CHUNK_SIZE);
+        char *newmem = realloc(dyn->buf, dyn->size + DYNBUF_CHUNK_SIZE);
+        if (newmem == NULL) {
+            /* realloc failed */
+            free(dyn->buf);
+            free(dyn);
+            exit(EXIT_FAILURE);
+        }
+        dyn->buf = newmem;
         dyn->size += DYNBUF_CHUNK_SIZE;
     }
     memcpy(dyn->buf + dyn->ptr, str, len);

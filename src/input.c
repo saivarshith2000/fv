@@ -23,6 +23,9 @@
 
 #include "input.h"
 
+/* macro to check if a char is numeric */
+#define IS_NUM(ch) (ch >= '0' && ch <= '9')
+
 /* Waits for user to enter a key and returns it. It handles read timeout
  * and errors. If read() error occurs, it will DIE()
  */
@@ -37,6 +40,29 @@ static int read_key()
         }
     }
     return c;
+}
+
+/* converts a string of digits to a number. If the string is invalid
+ * ie., contains non numeric digits, -1 is returned. Otherwise, the
+ * converted int is returned */
+static int convert_to_num(char *str, int len)
+{
+    int ret = 0;
+    int i = 0;
+    while(i < len) {
+        if (!IS_NUM(str[i]))
+            return -1;
+        ret = 10 * ret + str[i] - 48;
+        i++;
+    }
+    return ret;
+}
+
+/* simple utility function to clear prompt */
+static void clear_prompt(struct fv *cfg)
+{
+    memset(cfg->prompt, '\0', cfg->tcols);
+    cfg->prompt_idx = 0;
 }
 
 /* adjusts cfg->voffset to scroll up n lines */
@@ -58,75 +84,109 @@ static void scroll_down(struct fv *cfg, int n)
         cfg->voffset = max_voffset;
 }
 
-/* handles input starting with a number. */
-void handle_numeric(int first_key, struct fv *config)
+/* handles basic input like movement keys (j, k, g, G) and quit */
+static void handle_basic_input(int key, struct fv *cfg)
 {
-    int key = first_key;
-    int num = key - 48;
-    while((key = read_key())){
-        if (key >= '0' && key <= '9') {
-            num *= 10;
-            num += key - 48;
-        } else if (key == '\r' || key == '\n') {
-            /* jump to line number num */
-            config->voffset = 0;
-            if (num == 0)
-                break;
-            scroll_down(config, num - 1);
-            break;
-        } else if (key == 'j') {
-            /* scrolling down num lines */
-            scroll_down(config, num);
-            break;
-        } else if (key == 'k') {
-            /* scrolling up num lines */
-            scroll_up(config, num);
-            break;
-        } else {
-            /* invalid input */
-            break;
-        }
-    }
-    return ;
-}
-
-/* Obtains user input via read_key() and modifies the state of fv struct */
-void process_input(struct fv *config)
-{
-    int key = read_key();
-
-    /* handle numeric input */
-    if (key >= '0' && key <= '9') {
-        handle_numeric(key, config);
-        return ;
-    }
-
-    struct fv_file *f = config->f;
     switch(key) {
         case 'j':
-            /* scroll down 1 line */
-            scroll_down(config, 1);
+            scroll_down(cfg, 1);
             break;
 
         case 'k':
-            /* scroll up 1 line */
-            scroll_up(config, 1);
+            scroll_up(cfg, 1);
             break;
 
         case 'g':
-            /* scroll to top */
-            config->voffset = 0;
+            /* goto to top */
+            cfg->voffset = 0;
             break;
 
         case 'G':
-            /* scroll to bottom */
-            if (f->line_count - config->voffset > config->trows + 3)
-                config->voffset = f->line_count - config->trows + 3;
+            /* goto to bottom */
+            cfg->voffset = cfg->f->line_count - cfg->trows + 3;
             break;
 
         case 'q':
-            /* quit */
             exit(EXIT_SUCCESS);
+            break;
+    }
+}
+
+/* handles user input accumilated in the prompt */
+static void handle_search_input(int key, struct fv *cfg)
+{
+    if (key != '\r' && key != '\n') {
+        cfg->prompt[cfg->prompt_idx++] = key;
+    }
+}
+
+/* handles numeric input for movement */
+static void handle_numeric_input(int key, struct fv *cfg)
+{
+    if (IS_NUM(key)) {
+        cfg->prompt[cfg->prompt_idx++] = key;
+        return ;
+    }
+    int n = convert_to_num(cfg->prompt, cfg->prompt_idx);
+    if (n == -1) {
+        /* invalid numeric input */
+        clear_prompt(cfg);
+        return ;
+    }
+    switch (key) {
+        case '\r':
+        case '\n':
+            /* goto the nth line */
+            cfg->voffset = 0;
+            if (n == 0)
+                break;
+            scroll_down(cfg, n-1);
+            break;
+
+        case 'j':
+            /* scroll down n lines */
+            scroll_down(cfg, n);
+            break;
+
+        case 'k':
+            /* scroll up n lines */
+            scroll_up(cfg, n);
+            break;
+    }
+    clear_prompt(cfg);
+}
+
+/* Obtains user input via read_key() and modifies the state of fv struct */
+void process_input(struct fv *cfg)
+{
+    int key = read_key();
+
+    /* if ESC is pressed, clear prompt */
+    if (key == '\x1b') {
+        clear_prompt(cfg);
+        return ;
+    }
+
+    /* if prompt is empty */
+    if (cfg->prompt_idx == 0) {
+        if (IS_NUM(key)) {
+            handle_numeric_input(key, cfg);
+        } else if (key == '/') {
+            handle_search_input(key, cfg);
+        } else {
+            handle_basic_input(key, cfg);
+        }
+        return ;
+    }
+
+    /* if prompt is not empty */
+     if (cfg->prompt[0] == '/') {
+        handle_search_input(key, cfg);
+    } else if (IS_NUM(cfg->prompt[0])) {
+        handle_numeric_input(key, cfg);
+    } else {
+        /* invalid input */
+        clear_prompt(cfg);
     }
     return ;
 }
