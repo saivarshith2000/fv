@@ -71,6 +71,7 @@ static int read_file(struct fv_file *f)
     char *line = NULL;
     size_t linelen = 0;
     size_t linecap = 0;
+    size_t max_linelen = 0;
     while((linelen = getline(&line, &linecap, f->fptr)) != -1) {
         while(linelen > 0 && (line[linelen-1] == '\n' || line[linelen-1] == '\r'))
             linelen--;
@@ -80,7 +81,10 @@ static int read_file(struct fv_file *f)
         row->line[linelen] = '\0';
         row->len = linelen + 1;
         insert_row(f, row);
+        if (linelen > max_linelen)
+            max_linelen = linelen;
     }
+    f->max_linelen = max_linelen;
     f->line_count_digs = count_digs(f->line_count);
     free(line);
     return 0;

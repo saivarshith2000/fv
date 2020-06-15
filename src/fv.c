@@ -67,8 +67,9 @@ static void init_fv()
     get_window_size(&config.trows, &config.tcols);
     /* read file contents */
     config.f = handle_file(config.filename);
-    /* set vertical offset to zero */
+    /* set vertical and horizontal offsets to zero */
     config.voffset = 0;
+    config.hoffset = 0;
     /* initial prompt */
     config.prompt = malloc(config.tcols);
     memset(config.prompt, '\0', config.tcols);

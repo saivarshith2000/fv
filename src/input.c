@@ -26,6 +26,14 @@
 /* macro to check if a char is numeric */
 #define IS_NUM(ch) (ch >= '0' && ch <= '9')
 
+/* scroll direction enum */
+enum scroll_dir {
+    SCR_LEFT,
+    SCR_RIGHT,
+    SCR_UP,
+    SCR_DOWN
+};
+
 /* Waits for user to enter a key and returns it. It handles read timeout
  * and errors. If read() error occurs, it will DIE()
  */
@@ -65,50 +73,82 @@ static void clear_prompt(struct fv *cfg)
     cfg->prompt_idx = 0;
 }
 
-/* adjusts cfg->voffset to scroll up n lines */
-static void scroll_up(struct fv *cfg, int n)
+/* adjusts voffset and hoffset to scroll file */
+static void scroll(struct fv *cfg, int n, enum scroll_dir dir)
 {
-    if (cfg->voffset - n < 0)
-        cfg->voffset = 0;
-    else
-        cfg->voffset -= n;
+    int max_voffset;
+    switch (dir) {
+        case SCR_UP:
+            if (cfg->f->line_count <= cfg->trows)
+                return ;
+            if (cfg->voffset < n)
+                cfg->voffset = 0;
+            else
+                cfg->voffset -= n;
+            return ;
+
+        case SCR_DOWN:
+            if (cfg->f->line_count <= cfg->trows)
+                return ;
+            max_voffset = cfg->f->line_count - cfg->trows + 3;
+            if (cfg->voffset + n > max_voffset)
+                cfg->voffset = max_voffset;
+            else
+                cfg->voffset += n;
+            return ;
+
+        case SCR_LEFT:
+            /* if (cfg->f->max_linelen <= cfg->tcols - cfg->f->line_count_digs - 2) */
+            /*     return ; */
+            if (cfg->hoffset < n)
+                cfg->hoffset = 0;
+            else
+                cfg->hoffset -= n;
+            return ;
+
+        case SCR_RIGHT:
+            /* if (cfg->f->max_linelen <= cfg->tcols - cfg->f->line_count_digs - 2) */
+            /*     return  ; */
+            if (cfg->hoffset + n > cfg->f->max_linelen)
+                cfg->hoffset = cfg->f->max_linelen;
+            else
+                cfg->hoffset += n;
+            return ;
+    }
 }
 
-/* adjusts cfg->voffset to scroll down n lines */
-static void scroll_down(struct fv *cfg, int n)
-{
-    int max_voffset = cfg->f->line_count - cfg->trows + 3;
-    if (cfg->voffset + n <= max_voffset)
-        cfg->voffset += n;
-    else
-        cfg->voffset = max_voffset;
-}
-
-/* handles basic input like movement keys (j, k, g, G) and quit */
+/* handles basic input like movement keys (h, j, k, l, g, G) and quit */
 static void handle_basic_input(int key, struct fv *cfg)
 {
     switch(key) {
+        case 'h':
+            scroll(cfg, 1, SCR_LEFT);
+            return ;
+
         case 'j':
-            scroll_down(cfg, 1);
-            break;
+            scroll(cfg, 1, SCR_DOWN);
+            return ;
 
         case 'k':
-            scroll_up(cfg, 1);
-            break;
+            scroll(cfg, 1, SCR_UP);
+            return ;
+
+        case 'l':
+            scroll(cfg, 1, SCR_RIGHT);
+            return ;
 
         case 'g':
             /* goto to top */
             cfg->voffset = 0;
-            break;
+            return ;
 
         case 'G':
             /* goto to bottom */
             cfg->voffset = cfg->f->line_count - cfg->trows + 3;
-            break;
+            return ;
 
         case 'q':
             exit(EXIT_SUCCESS);
-            break;
     }
 }
 
@@ -138,19 +178,28 @@ static void handle_numeric_input(int key, struct fv *cfg)
         case '\n':
             /* goto the nth line */
             cfg->voffset = 0;
-            if (n == 0)
-                break;
-            scroll_down(cfg, n-1);
+            if (n != 0)
+                scroll(cfg, n-1, SCR_DOWN);
+            break;
+
+        case 'h':
+            /* scroll right n cols */
+            scroll(cfg, n, SCR_LEFT);
             break;
 
         case 'j':
             /* scroll down n lines */
-            scroll_down(cfg, n);
+            scroll(cfg, n, SCR_DOWN);
             break;
 
         case 'k':
             /* scroll up n lines */
-            scroll_up(cfg, n);
+            scroll(cfg, n, SCR_UP);
+            break;
+
+        case 'l':
+            /* scroll left n cols */
+            scroll(cfg, n, SCR_RIGHT);
             break;
     }
     clear_prompt(cfg);
@@ -180,7 +229,7 @@ void process_input(struct fv *cfg)
     }
 
     /* if prompt is not empty */
-     if (cfg->prompt[0] == '/') {
+    if (cfg->prompt[0] == '/') {
         handle_search_input(key, cfg);
     } else if (IS_NUM(cfg->prompt[0])) {
         handle_numeric_input(key, cfg);

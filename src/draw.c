@@ -84,9 +84,16 @@ void draw_rows(struct fv *cfg)
         /* draw line number */
         char num[linenum_padding + 3];
         sprintf(num, "%*d| ", linenum_padding, i + 1);
-        dynbuf_insert(&dyn, num, strlen(num));
-        /* draw line */
-        dynbuf_insert(&dyn, contents[i]->line, contents[i]->len);
+        int numlen = strlen(num);
+        dynbuf_insert(&dyn, num, numlen);
+        /* draw a line only if it should be visible */
+        if (cfg->hoffset < contents[i]->len){
+            /* draw line */
+            int linelen = contents[i]->len - cfg->hoffset;
+            if (linelen > cfg->tcols - numlen)
+                linelen = cfg->tcols - numlen;
+            dynbuf_insert(&dyn, contents[i]->line + cfg->hoffset, linelen);
+        }
         /* draw newline and carriage return */
         dynbuf_insert(&dyn, "\r\n", 2);
         i++;

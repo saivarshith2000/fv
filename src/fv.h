@@ -45,6 +45,7 @@ struct fv {
     char *filename;          /* name of the file open with fv */
     struct fv_file *f;       /* pointer to the file struct. see src/file.h */
     int voffset;             /* vertical offset. Used in vertical scrolling */
+    int hoffset;             /* horizontal offset. Used in horizontal scrolling */
     char *prompt;            /* prompt below status bar */
     int prompt_idx;          /* index of the next character in prompt */
 };
