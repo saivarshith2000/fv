@@ -26,14 +26,17 @@ fv <filename>[:<line-number>] [-l] [-w] [-h] [-v]
 
 ## Keybindings
 ```
-q       -   exit fv.
-h,j,k,l -   scroll left, down, up, right by one row/column.
-g       -   goto top of the file
-G       -   goto bottom of the file
-n       -   move to next occurance of search term
-N       -   move to previous occurance of search term
-<num><key>RETURN    -   equivalent to pressing <key> n times where <key> is one of h,j,k,l.
-/<string>RETURN     -    search for all occurances of <string> in the file. The number of such occurances is shown in status bar.
+h,j,k,l - scroll left, down, up, right by one row/column.
+q - exit fv.
+g - goto top of the file
+G - goto bottom of the file
+n - move to next occurance of search term
+N - move to previous occurance of search term
+
+<num><key>RETURN - equivalent to pressing <key> <num> times where <key> is one of h,j,k,l.
+
+/<string>RETURN  - search for all occurances of <string> in the file.  
+                   The number of such occurances is shown in status bar.
 ```
 
 Note: All the above information can be accessed with ```man fv``` command after installing fv.
