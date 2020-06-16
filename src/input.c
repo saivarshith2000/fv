@@ -98,8 +98,8 @@ static void scroll(struct fv *cfg, int n, enum scroll_dir dir)
             return ;
 
         case SCR_LEFT:
-            /* if (cfg->f->max_linelen <= cfg->tcols - cfg->f->line_count_digs - 2) */
-            /*     return ; */
+            if (cfg->f->max_linelen <= cfg->tcols - cfg->f->line_count_digs - 2)
+                return ;
             if (cfg->hoffset < n)
                 cfg->hoffset = 0;
             else
@@ -107,8 +107,8 @@ static void scroll(struct fv *cfg, int n, enum scroll_dir dir)
             return ;
 
         case SCR_RIGHT:
-            /* if (cfg->f->max_linelen <= cfg->tcols - cfg->f->line_count_digs - 2) */
-            /*     return  ; */
+            if (cfg->f->max_linelen <= cfg->tcols - cfg->f->line_count_digs - 2)
+                return  ;
             if (cfg->hoffset + n > cfg->f->max_linelen)
                 cfg->hoffset = cfg->f->max_linelen;
             else
@@ -183,22 +183,18 @@ static void handle_numeric_input(int key, struct fv *cfg)
             break;
 
         case 'h':
-            /* scroll right n cols */
             scroll(cfg, n, SCR_LEFT);
             break;
 
         case 'j':
-            /* scroll down n lines */
             scroll(cfg, n, SCR_DOWN);
             break;
 
         case 'k':
-            /* scroll up n lines */
             scroll(cfg, n, SCR_UP);
             break;
 
         case 'l':
-            /* scroll left n cols */
             scroll(cfg, n, SCR_RIGHT);
             break;
     }

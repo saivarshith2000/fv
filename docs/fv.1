@@ -1,0 +1,63 @@
+." man-page entry for fv
+
+.TH fv 1 "16-6-2020" "version 1.0" "fv Manual"
+
+.SH NAME
+fv - A command line file pager.
+
+.SH USAGE
+.B fv
+<filename>[:<line-number>] [-l] [-w] [-h] [-v]
+
+.SH OPTIONS
+.IP <filename>:[<line-number>]
+Name of the file to view. To open the file at a specific line, append ":" and line number to filename.
+.IP -l
+Disable line numbers.
+.IP -w
+Enable Word wrapping
+.IP -h
+Show usage.
+.IP -v
+Print version.
+
+.SH KEYBINDINGS
+.IP h
+Scroll left 1 column.
+.IP j
+Scroll down 1 row.
+.IP k
+Scroll up 1 row.
+.IP l
+Scroll right 1 column.
+.IP g
+Scroll to top of the file.
+.IP G
+Scroll to bottom of the file.
+.IP n
+Navigate to
+.B NEXT
+occurance of search term.
+.IP N
+Navigate to
+.B PREVIOUS
+occurance of search term.
+.IP q
+Exit fv.
+.IP <num><key>RETURN
+<key> can be one of h,j,k,l. Scroll num rows or columns based on the key.
+.IP <num>RETURN
+Scroll to line number num. If if doesn't exist, scroll to bottom.
+.IP /<string>RETURN
+Search for all occurances of <string> in the file. The status bar shows the number of occurances. To navigate
+between occurances, use n and N.
+
+.SH BUGS
+If you find any bugs, please feel free to create an issue at
+.I https://github.com/saivarshith2000/fv/issues
+
+." Installed files.
+.SH FILES
+.I /usr/local/bin/fv
+.br
+.I /usr/local/man/man1/fv.gz
