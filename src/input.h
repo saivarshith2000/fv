@@ -27,6 +27,6 @@
 
 #include "fv.h"
 
-void process_input(struct fv *config);
+void process_input(fv_state *state);
 
 #endif /* _INPUT_H_ */

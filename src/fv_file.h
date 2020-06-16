@@ -30,22 +30,23 @@
 
 #define ROW_STEP 64
 
-struct filerow {
+struct frow {
     char *line;
     size_t len;
 };
+typedef struct frow frow;
 
 struct fv_file {
     char *filename;             /* name of the file */
     int filename_len;           /* strlen() of the filename */
-    FILE *fptr;                 /* file pointer */
     int line_count;             /* total number of lines in the file */
     int line_count_digs;        /* number of digits in line count */
-    int max_linelen;         /* maximum width of all the lines in the file */
-    struct filerow **contents;  /* dynamic array of filerows */
+    int max_linelen;            /* maximum width of all the lines in the file */
+    frow **contents;            /* dynamic array of filerows */
     int line_capacity;          /* current capacity of the contents array */
 };
+typedef struct fv_file fv_file;
 
-struct fv_file *handle_file(char *filename);
+int handle_file(char *filename, fv_file *f);
 
 #endif /* _FV_H_ */

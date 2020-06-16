@@ -22,88 +22,86 @@
    SOFTWARE.
 */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <errno.h>
+#include <sys/ioctl.h>
+
 #include "fv.h"
 #include "draw.h"
 #include "input.h"
-#include "fv_file.h"
 
 /* prototypes */
-static void parse_args();
-static void init_fv();
-static void get_window_size();
-static void enable_raw_mode();
-static void disable_raw_mode();
-static void quit();
-
-/* global fv struct */
-static struct fv config;
+static void parse_args(fv_state *state, int argc, char *argv[]);
+static void init_fv(fv_state *state);
+static int get_window_size(int *rows, int *cols);
+static void enable_raw_mode(fv_state *state);
+static int disable_raw_mode(fv_state *state);
 
 int main(int argc, char *argv[])
 {
-    parse_args();
-    init_fv();
-    enable_raw_mode();
+    /* initialize fv */
+    fv_state state = {0};
+    parse_args(&state, argc, argv);
+    init_fv(&state);
+    enable_raw_mode(&state);
     clear_screen();
     while(1) {
-        refresh_screen(&config);
-        process_input(&config);
+        refresh_screen(&state);
+        process_input(&state);
     }
     return EXIT_SUCCESS;
 }
 
 /* Parses runtime arguments */
-static void parse_args(int argc, char *argv[])
+static void parse_args(fv_state *state, int argc, char *argv[])
 {
     if (argc == 1){
-        printf("A filename argument is required.\n");
+        printf("A filename is required.\n");
         exit(EXIT_FAILURE);
     }
-    config.filename = argv[1];
+    state->filename = argv[1];
 }
 
 /* Initialises the config struct */
-static void init_fv()
+static void init_fv(fv_state *state)
 {
-    /* register disable_raw_mode() to be called at exit */
-    if (atexit(quit) != 0)
-        DIE("Failed to register exit function");
     /* obtain window size */
-    get_window_size(&config.trows, &config.tcols);
+    if(get_window_size(&state->trows, &state->tcols) == -1)
+        quit(state, "Failed to obtain window size", EXIT_FAILURE, 0);
     /* read file contents */
-    config.f = handle_file(config.filename);
-    /* set vertical and horizontal offsets to zero */
-    config.voffset = 0;
-    config.hoffset = 0;
+    if (handle_file(state->filename, &state->f) == -1)
+        quit(state, "", EXIT_FAILURE, 1);
     /* initial prompt */
-    config.prompt = malloc(config.tcols);
-    memset(config.prompt, '\0', config.tcols);
-    config.prompt_idx = 0;
+    state->prompt = malloc(state->tcols);
+    memset(state->prompt, '\0', state->tcols);
 }
 
-/* returns the number of columns and rows in the terminal window
- * via *rows and *cols pointers. It uses ioctl() syscall to obtain
- * this information. It it fails, DIE() macro is called
- */
-static void get_window_size(int *rows, int *cols)
+/* Obtains terminal size using ioctl(). Returns 0 on success and
+ * -1 on failure. On success, the size is returned via pointers */
+static int get_window_size(int *rows, int *cols)
 {
     struct winsize ws;
     if (ioctl(1, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0)
-        DIE("Failed to obtain window size.");
+        return -1;
     *rows = ws.ws_row;
     *cols = ws.ws_col;
+    return 0;
 }
 
 /* stores original termios struct and switches terminal raw mode.
  * If any syscall fails, this function calls the DIE macro
  */
-static void enable_raw_mode()
+static void enable_raw_mode(fv_state *state)
 {
     /* switch to alternate screen buffer */
     write(STDOUT_FILENO, "\x1b[?1049h", 8);
 
-    if (tcgetattr(STDIN_FILENO, &(config.orig)) == -1)
-        DIE("Failed to obtain terminal attributes.");
-    struct termios raw = config.orig;
+    if (tcgetattr(STDIN_FILENO, &(state->orig)) == -1)
+        quit(state, "Failed to obtain terminal attributes.", EXIT_FAILURE, 0);
+    struct termios raw = state->orig;
     raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
     raw.c_oflag &= ~(OPOST);
     raw.c_cflag |= (CS8);
@@ -112,37 +110,45 @@ static void enable_raw_mode()
     raw.c_cc[VMIN] = 0;
     raw.c_cc[VTIME] = 1;
     if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) == -1)
-        DIE("Failed to switch to raw mode");
-
+        quit(state, "Failed to switch to raw mode", EXIT_FAILURE, 0);
 }
 
-/* switches the terminal to whatever mode it was in before the start
- * of the program. This function is automatically called during normal
- * exit (this includes DIE()).
- */
-static void disable_raw_mode()
+/* disable raw mode and switch back to original screen buffer. Returns 0 on
+ * success and -1 on failure */
+static int disable_raw_mode(fv_state *state)
 {
-    if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &config.orig) == -1)
-        DIE("Failed to switch back to canonical mode.");
+    if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &state->orig) == -1)
+        return -1;
     /* switch back to original screen buffer */
     write(STDOUT_FILENO, "\x1b[?1049l", 8);
+    return 0;
 }
 
-/* cleanup memory and exit */
-static void quit()
+/* This function is called when an error occurs or the user press q
+ * @state -> pointer to fv_state.
+ * @msg -> error message. NULL for normal exit.
+ * @exit_code -> exit code. EXIT_FAILURE if error else EXIT_SUCCESS.
+ * @switch_back -> if switch_back is 1, terminal switches to raw_mode
+ */
+void quit(fv_state *state, char *msg, int exit_code, int switch_back)
 {
-    /* restore terminal */
-    clear_screen();
-    disable_raw_mode();
-    /* free file memory. If a relloc() error occured in read_file(), already
-     * allocated memory is freed and exit() is called. In that case, config.f
-     * is already NULL so don't free it again !*/
-    if (config.f == NULL)
+    if (state->f.contents == NULL)
         return ;
     int i = 0;
-    for(i = 0; i < config.f->line_count; i++) {
-        free(config.f->contents[i]->line);
-        free(config.f->contents[i]);
+    for(i = 0; i < state->f.line_count; i++) {
+        free(state->f.contents[i]->line);
+        free(state->f.contents[i]);
     }
-    return ;
+    /* restore terminal */
+    if (switch_back) {
+        clear_screen();
+        disable_raw_mode(state);
+
+    }
+    /* msg is not NULL (an error occured). Print the error and exit */
+    if (msg) {
+        fprintf(stderr, "ERROR: %s\n", msg);
+        fprintf(stderr, "ERRNO: %d (%s)", errno, strerror(errno));
+    }
+    exit(exit_code);
 }

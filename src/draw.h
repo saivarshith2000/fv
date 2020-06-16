@@ -25,10 +25,10 @@
 #ifndef _SCREEN_H_
 #define _SCREEN_H_
 
-#include "fv_file.h"
 #include "fv.h"
+#include "fv_file.h"
 
 void clear_screen();
-void refresh_screen(struct fv *config);
+void refresh_screen(fv_state *state);
 
 #endif /* _SCREEN_H_ */
