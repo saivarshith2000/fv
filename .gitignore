@@ -5,6 +5,8 @@
 build/
 fv
 
+# test files
+tests/
 
 # Prerequisites
 *.d
