@@ -1,20 +1,53 @@
-# fv
-
-Simple terminal based file viewer
-
+# fv - a command line file pager.
 [![Build Status](https://travis-ci.com/saivarshith2000/fv.svg?branch=master)](https://travis-ci.com/saivarshith2000/fv)
-[![GitHub license](https://img.shields.io/github/license/saivarshith2000/fv)](https://github.com/saivarshith2000/fv/blob/master/LICENSE)
+[![GitHub license](https://img.shields.io/github/license/saivarshith2000/fv)](https://github.com/saivarshith2000/fv/blob/master/LICENSE)  
 
-### Features:
-1. Search
-2. Vim like keybinds
-3. Fast :)
+fv is a simple command line file pager written as a learning exercise.
 
-### Keybinds:
-1. j,k - for scrolling up and down respectively.
-2. g - go to top of the file.
-3. G - go to bottom of the file.
-4. q - quit
+## Installation
+```
+1. You'll need a C compiler (the makefile uses cc.)
+1. git clone https://github.com/saivarshith2000/fv.git
+2. cd fv && make install
+```
+Note: fv is tested on linux systems only. It will not work on windows.
 
-### Screenshots
+## Usage
+```
+fv <filename>[:<line-number>] [-l] [-w] [-h] [-v]
+
+    <filename>[:<line-number>]
+        Open file <filename>. To open the file at a specific line append ':' and the line-number to filename.
+
+    -l disable line numbers.
+
+    -f enable line folding.
+
+    -h show usage.
+
+    -v print version.
+```
+
+## Keybindings
+```
+q       -   exit fv.
+
+h,j,k,l -   scroll left, down, up, right by one row/column.
+
+g       -   goto top of the file
+
+G       -   goto bottom of the file
+
+n       -   move to next occurance of search term
+
+N       -   move to previous occurance of search term
+
+<num><key>RETURN    -   equivalent to pressing <key> n times where <key> is one of h,j,k,l.
+
+/<string>RETURN     -    search for all occurances of <string> in the file. The number of such occurances is shown in status bar.
+```
+
+Note: All the above information can be accessed with ```man fv``` command after installing fv.
+
+## Screencap
 <TODO>
