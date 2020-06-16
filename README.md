@@ -40,3 +40,7 @@ Note: All the above information can be accessed with ```man fv``` command after 
 
 ## Screencap
 <TODO>
+
+## LICENSE
+fv is licensed under MIT License. See [LICENSE](https://github.com/saivarshith2000/fv/blob/master/LICENSE
+)
