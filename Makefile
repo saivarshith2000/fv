@@ -7,11 +7,11 @@ SRC_FILES := $(wildcard $(SRC_DIR)/*.c)
 OBJ_FILES := $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SRC_FILES))
 
 MANPAGE := docs/fv.1
-MAN_INSTALL_LOC := /usr/local/man/man1/fv.1
+MAN_INS_PATH := /usr/local/man/man1/fv.1
 
 DIRS := build
 
-BIN_INSTALL_LOC := /usr/local/bin/fv
+FV_INS_PATH := /usr/local/bin/fv
 
 $(shell mkdir -p $(DIRS))
 
@@ -24,11 +24,11 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 
 # install rules
 install: fv ${MANPAGE}
-	sudo cp fv ${BIN_INSTALL_LOC}
-	sudo cp ${MANPAGE} ${MAN_INSTALL_LOC}
+	sudo cp fv ${FV_INS_PATH}
+	sudo cp ${MANPAGE} ${MAN_INS_PATH}
 
 remove:
-	sudo rm ${BIN_INSTALL_LOC} ${MAN_INSTALL_LOC}
+	sudo rm ${FV_INS_PATH} ${MAN_INS_PATH}
 
 clean:
 	rm -rf ${OBJ_DIR} fv

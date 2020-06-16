@@ -5,10 +5,11 @@
 fv is a simple command line file pager written as a learning exercise.
 
 ## Installation
+You'll need a C compiler to build fv. The man pages are installed to /usr/local/man/man1 by default.
 ```
-1. You'll need a C compiler (the makefile uses cc.)
-1. git clone https://github.com/saivarshith2000/fv.git
-2. cd fv && make install
+1. git clone https://github.com/saivarshith2000/fv.git && cd fv
+2. make install (default installation)
+3. make install CC=<your compiler> MAN_INS_PATH=<your manpage location>
 ```
 Note: fv is tested on linux systems only. It will not work on windows.
 
