@@ -1,5 +1,7 @@
 CC := cc
-CFLAGS := -Wall -g
+CFLAGS := -Wall -Werror -Wshadow -Os
+# Uncomment the below line to enable debug flags
+# CFLAGS += -g3
 
 SRC_DIR := src
 OBJ_DIR := build
