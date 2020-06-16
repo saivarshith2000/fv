@@ -1,5 +1,5 @@
 language: c
-compiler: gcc
+compiler: cc
 os: linux
 install: skip
 script: make
