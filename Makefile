@@ -1,5 +1,5 @@
 CC := cc
-CFLAGS := -Wall -Werror -Wshadow -Os
+CFLAGS := -Wall -Werror -Wshadow -O2
 # Uncomment the below line to enable debug flags
 # CFLAGS += -g3
 

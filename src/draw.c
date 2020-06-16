@@ -51,7 +51,6 @@ int dynbuf_insert(struct dynbuf *dyn, const char *str, int len)
         if (newmem == NULL) {
             /* realloc failed */
             free(dyn->buf);
-            free(dyn);
             exit(EXIT_FAILURE);
         }
         dyn->buf = newmem;
