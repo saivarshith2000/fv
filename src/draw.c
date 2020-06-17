@@ -87,7 +87,7 @@ static void status_bar(fv_state *state)
     /* invert colors */
     dynbuf_insert(&dyn, "\x1b[7m", 4);
     char status[state->tcols + 16];
-    sprintf(status, " File: %s [%d/%d]", state->f.filename, state->voffset, state->f.line_count);
+    sprintf(status, " File: %s [%d/%d]", state->filename, state->voffset + 1, state->f.line_count);
     dynbuf_insert(&dyn, status, strlen(status));
     /* fill out bar with spaces */
     int i = 0;

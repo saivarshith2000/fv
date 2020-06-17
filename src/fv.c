@@ -28,6 +28,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <getopt.h>
+#include <signal.h>
 #include <sys/ioctl.h>
 
 #include "fv.h"
@@ -39,18 +40,20 @@
                     "fv is licensed under the MIT License\n"\
                     "See https://github.com/saivarshith2000/fv\n"
 
+/* fv state */
+static fv_state state = {0};
+
 /* prototypes */
-static void parse_args(fv_state *state, int argc, char *argv[]);
-static void init_fv(fv_state *state);
-static int get_window_size(int *rows, int *cols);
-static void prepare_terminal(fv_state *state);
-static int restore_terminal(fv_state *state);
+static void parse_args(int argc, char *argv[]);
+static void init_fv();
+static void get_window_size();
+static void prepare_terminal();
+static int restore_terminal();
 
 int main(int argc, char *argv[])
 {
     /* initialize fv */
-    fv_state state = {0};
-    parse_args(&state, argc, argv);
+    parse_args(argc, argv);
     init_fv(&state);
     prepare_terminal(&state);
     clear_screen();
@@ -62,45 +65,45 @@ int main(int argc, char *argv[])
 }
 
 /* Parses runtime arguments */
-static void parse_args(fv_state *state, int argc, char *argv[])
+static void parse_args(int argc, char *argv[])
 {
     int opt;
     while((opt = getopt(argc, argv, "lhv")) != -1) {
         switch(opt) {
             case 'l':
                 /* disable line numbering */
-                state->enable_linenum = 0;
+                state.enable_linenum = 0;
                 break;
 
             case 'h':
                 /* print help string and exit */
                 printf("Usage: fv <filename>[:line-number] [-l] [-h] [-v]\n");
-                quit(state, NULL, EXIT_SUCCESS, 0);
+                quit(&state, NULL, EXIT_SUCCESS, 0);
 
             case 'v':
                 /* print version and copyright information */
                 printf("%s", VERSION_STR);
-                quit(state, NULL, EXIT_SUCCESS, 0);
+                quit(&state, NULL, EXIT_SUCCESS, 0);
 
             default:
-                quit(state, NULL, EXIT_SUCCESS, 0);
+                quit(&state, NULL, EXIT_SUCCESS, 0);
         }
     }
     if (optind < argc) {
         char *seperator = strchr(argv[optind], ':');
         if (seperator == NULL) {
             /* if line number is not passed */
-            state->filename = argv[optind];
+            state.filename = argv[optind];
         } else {
             int linenum = strtol(seperator + 1, NULL, 10);
             *seperator = '\0';
-            state->filename = argv[optind];
+            state.filename = argv[optind];
             /* if an error occured during conversion or line number
              * is invalid just open the file silently */
-            if (linenum < 1 && errno == ERANGE)
+            if (linenum < 1 || errno == ERANGE)
                 return ;
             /* this value is later adjusted in init_fv() */
-            state->voffset = linenum - 1;
+            state.voffset = linenum - 1;
         }
     } else {
         printf("A filename is required. See fv -h for usage\n");
@@ -108,62 +111,79 @@ static void parse_args(fv_state *state, int argc, char *argv[])
     }
 }
 
+/* CTRL+Z handler */
+static void ctrlz_handler(){
+    clear_screen();
+    write(STDOUT_FILENO, "\x1b[?1049l", 8);
+    return ;
+}
+
+/* CTRL+C handler */
+static void ctrlc_handler(){
+    quit(&state, NULL, EXIT_SUCCESS, 1);
+}
+
 /* Initialises the config struct */
-static void init_fv(fv_state *state)
+static void init_fv()
 {
+    /* register signal handlers */
+    signal(SIGWINCH, get_window_size);
+    signal(SIGTSTP, SIG_DFL);
+    signal(SIGTSTP, ctrlz_handler);
+    signal(SIGINT, ctrlc_handler);
+
     /* obtain window size */
-    if(get_window_size(&state->trows, &state->tcols) == -1)
-        quit(state, "Failed to obtain window size", EXIT_FAILURE, 0);
+    get_window_size();
     /* read file contents */
-    if (handle_file(state->filename, &state->f) == -1)
-        quit(state, "", EXIT_FAILURE, 1);
+    if (handle_file(state.filename, &state.f) == -1)
+        quit(&state, "", EXIT_FAILURE, 1);
     /* check if voffset given by user to valid */
-    if (state->voffset > state->f.line_count)
-        state->voffset = 0;
+    if (state.voffset > state.f.line_count)
+        state.voffset = 0;
     /* initial prompt */
-    state->prompt = malloc(state->tcols);
-    memset(state->prompt, '\0', state->tcols);
+    state.prompt = malloc(state.tcols);
+    memset(state.prompt, '\0', state.tcols);
 }
 
 /* Obtains terminal size using ioctl(). Returns 0 on success and
  * -1 on failure. On success, the size is returned via pointers */
-static int get_window_size(int *rows, int *cols)
+static void get_window_size()
 {
     struct winsize ws;
     if (ioctl(1, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0)
-        return -1;
-    *rows = ws.ws_row;
-    *cols = ws.ws_col;
-    return 0;
+        quit(&state, "Failed to obtain window size", EXIT_FAILURE, 0);
+    state.trows = ws.ws_row;
+    state.tcols = ws.ws_col;
 }
 
 /* stores original termios struct and switches terminal raw mode.
  * If any syscall fails, this function exits using quit()
  */
-static void prepare_terminal(fv_state *state)
+static void prepare_terminal()
 {
+
     /* switch to alternate screen buffer */
     write(STDOUT_FILENO, "\x1b[?1049h", 8);
 
-    if (tcgetattr(STDIN_FILENO, &(state->orig)) == -1)
-        quit(state, "Failed to obtain terminal attributes.", EXIT_FAILURE, 0);
-    struct termios raw = state->orig;
+    if (tcgetattr(STDIN_FILENO, &state.orig) == -1)
+        quit(&state, "Failed to obtain terminal attributes.", EXIT_FAILURE, 0);
+    struct termios raw = state.orig;
     raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
     raw.c_oflag &= ~(OPOST);
     raw.c_cflag |= (CS8);
-    raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG);
-    /* raw.c_lflag &= ~(ECHO | ICANON | IEXTEN); */
+    /* raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG); */
+    raw.c_lflag &= ~(ECHO | ICANON | IEXTEN);
     raw.c_cc[VMIN] = 0;
     raw.c_cc[VTIME] = 1;
     if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) == -1)
-        quit(state, "Failed to switch to raw mode", EXIT_FAILURE, 0);
+        quit(&state, "Failed to switch to raw mode", EXIT_FAILURE, 0);
 }
 
 /* disable raw mode and switch back to original screen buffer. Returns 0 on
  * success and -1 on failure */
-static int restore_terminal(fv_state *state)
+static int restore_terminal()
 {
-    if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &state->orig) == -1)
+    if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &state.orig) == -1)
         return -1;
     /* switch back to original screen buffer */
     write(STDOUT_FILENO, "\x1b[?1049l", 8);
@@ -189,7 +209,7 @@ void quit(fv_state *state, char *msg, int exit_code, int switch_back)
     /* restore terminal */
     if (switch_back) {
         clear_screen();
-        restore_terminal(state);
+        restore_terminal();
     }
 
     /* msg is not NULL (an error occured). Print the error */

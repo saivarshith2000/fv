@@ -1,6 +1,6 @@
 # fv - a command line file pager.
 ![build](https://github.com/saivarshith2000/fv/workflows/build/badge.svg)
-[![GitHub license](https://img.shields.io/github/license/saivarshith2000/fv)](https://github.com/saivarshith2000/fv/blob/master/LICENSE)  
+[![GitHub license](https://img.shields.io/github/license/saivarshith2000/fv)](https://github.com/saivarshith2000/fv/blob/master/LICENSE)
 
 fv is a simple command line file pager written as a learning exercise.
 
@@ -32,16 +32,21 @@ fv <filename>[:<line-number>] [-l] [-w] [-h] [-v]
 
 ## Keybindings
 ```
-h,j,k,l - scroll left, down, up, right by one row/column.
-q - exit fv.
-g - goto top of the file
-G - goto bottom of the file
+q - exit fv
+h - scroll left a column
+j - scroll down a row
+k - scroll up a row
+l - scroll right a column.
+g - scroll to top of the file
+G - scroll to bottom of the file
+$ - scroll to end of the largest line
+^ - scroll to start of line
 n - move to next occurance of search term
 N - move to previous occurance of search term
 
 <num><key>RETURN - equivalent to pressing <key> <num> times where <key> is one of h,j,k,l.
 
-/<string>RETURN  - search for all occurances of <string> in the file.  
+/<string>RETURN  - search for all occurances of <string> in the file.
                    The number of such occurances is shown in status bar.
 ```
 

@@ -37,7 +37,6 @@ struct frow {
 typedef struct frow frow;
 
 struct fv_file {
-    char *filename;             /* name of the file */
     int filename_len;           /* strlen() of the filename */
     int line_count;             /* total number of lines in the file */
     int line_count_digs;        /* number of digits in line count */

@@ -144,13 +144,22 @@ static void handle_basic_input(int key, fv_state *state)
             return ;
 
         case 'g':
-            /* goto to top */
+            /* scroll to top */
             state->voffset = 0;
             return ;
 
         case 'G':
-            /* goto to bottom */
+            /* scroll to bottom */
             state->voffset = state->f.line_count - state->trows + 3;
+
+        case '$':
+            /* scroll to end of the largest line */
+            state->hoffset = state->f.max_linelen - state->tcols;
+            return ;
+
+        case '^':
+            /* scroll to start of line */
+            state->hoffset = 0;
             return ;
 
         case 'q':
