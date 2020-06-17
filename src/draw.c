@@ -65,6 +65,7 @@ void dynbuf_free(struct dynbuf *dyn)
 {
     free(dyn->buf);
 }
+
 /* clear screen */
 void clear_screen()
 {
