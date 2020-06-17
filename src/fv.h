@@ -41,8 +41,7 @@ struct fv_state {
     struct fv_file f;        /* pointer to the file struct. see src/file.h */
 
     /* user options */
-    int line_numbering;
-    int word_wrapping;
+    int enable_linenum;
 
     /* Input prompt variables */
     char *prompt;            /* prompt below status bar */

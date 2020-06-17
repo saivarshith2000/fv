@@ -65,21 +65,16 @@ int main(int argc, char *argv[])
 static void parse_args(fv_state *state, int argc, char *argv[])
 {
     int opt;
-    while((opt = getopt(argc, argv, "lwhv")) != -1) {
+    while((opt = getopt(argc, argv, "lhv")) != -1) {
         switch(opt) {
             case 'l':
                 /* disable line numbering */
-                state->line_numbering = 0;
-                break;
-
-            case 'w':
-                /* disable word wrapping */
-                state->word_wrapping = 0;
+                state->enable_linenum = 0;
                 break;
 
             case 'h':
                 /* print help string and exit */
-                printf("Usage: fv <filename>[:line-number] [-l] [-w] [-h] [-v]\n");
+                printf("Usage: fv <filename>[:line-number] [-l] [-h] [-v]\n");
                 quit(state, NULL, EXIT_SUCCESS, 0);
 
             case 'v':
@@ -92,7 +87,21 @@ static void parse_args(fv_state *state, int argc, char *argv[])
         }
     }
     if (optind < argc) {
-        state->filename = argv[optind];
+        char *seperator = strchr(argv[optind], ':');
+        if (seperator == NULL) {
+            /* if line number is not passed */
+            state->filename = argv[optind];
+        } else {
+            int linenum = strtol(seperator + 1, NULL, 10);
+            *seperator = '\0';
+            state->filename = argv[optind];
+            /* if an error occured during conversion or line number
+             * is invalid just open the file silently */
+            if (linenum < 1 && errno == ERANGE)
+                return ;
+            /* this value is later adjusted in init_fv() */
+            state->voffset = linenum - 1;
+        }
     } else {
         printf("A filename is required. See fv -h for usage\n");
         exit(EXIT_FAILURE);
@@ -108,6 +117,9 @@ static void init_fv(fv_state *state)
     /* read file contents */
     if (handle_file(state->filename, &state->f) == -1)
         quit(state, "", EXIT_FAILURE, 1);
+    /* check if voffset given by user to valid */
+    if (state->voffset > state->f.line_count)
+        state->voffset = 0;
     /* initial prompt */
     state->prompt = malloc(state->tcols);
     memset(state->prompt, '\0', state->tcols);
