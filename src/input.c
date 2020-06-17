@@ -151,6 +151,7 @@ static void handle_basic_input(int key, fv_state *state)
         case 'G':
             /* scroll to bottom */
             state->voffset = state->f.line_count - state->trows + 3;
+            return ;
 
         case '$':
             /* scroll to end of the largest line */

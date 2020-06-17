@@ -124,10 +124,13 @@ void draw_rows(fv_state *state)
         /* clear line */
         dynbuf_insert(&dyn, "\x1b[K", 3);
         /* draw line number */
-        char num[linenum_padding + 3];
-        sprintf(num, "%*d| ", linenum_padding, i + 1);
-        int numlen = strlen(num);
-        dynbuf_insert(&dyn, num, numlen);
+        int numlen = 1;
+        if (state->enable_linenum) {
+            char num[linenum_padding + 3];
+            sprintf(num, "%*d| ", linenum_padding, i + 1);
+            numlen = strlen(num);
+            dynbuf_insert(&dyn, num, numlen);
+        }
         /* draw a line only if it should be visible */
         if (state->hoffset < contents[i]->len){
             /* draw line */
