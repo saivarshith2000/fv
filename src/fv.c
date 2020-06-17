@@ -27,18 +27,24 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
+#include <getopt.h>
 #include <sys/ioctl.h>
 
 #include "fv.h"
 #include "draw.h"
 #include "input.h"
 
+#define VERSION_STR "fv 1.0.0\n"\
+                    "Copyright (c) 2020 Sai Varshith\n"\
+                    "fv is licensed under the MIT License\n"\
+                    "See https://github.com/saivarshith2000/fv\n"
+
 /* prototypes */
 static void parse_args(fv_state *state, int argc, char *argv[]);
 static void init_fv(fv_state *state);
 static int get_window_size(int *rows, int *cols);
-static void enable_raw_mode(fv_state *state);
-static int disable_raw_mode(fv_state *state);
+static void prepare_terminal(fv_state *state);
+static int restore_terminal(fv_state *state);
 
 int main(int argc, char *argv[])
 {
@@ -46,7 +52,7 @@ int main(int argc, char *argv[])
     fv_state state = {0};
     parse_args(&state, argc, argv);
     init_fv(&state);
-    enable_raw_mode(&state);
+    prepare_terminal(&state);
     clear_screen();
     while(1) {
         refresh_screen(&state);
@@ -58,11 +64,39 @@ int main(int argc, char *argv[])
 /* Parses runtime arguments */
 static void parse_args(fv_state *state, int argc, char *argv[])
 {
-    if (argc == 1){
-        printf("A filename is required.\n");
+    int opt;
+    while((opt = getopt(argc, argv, "lwhv")) != -1) {
+        switch(opt) {
+            case 'l':
+                /* disable line numbering */
+                state->line_numbering = 0;
+                break;
+
+            case 'w':
+                /* disable word wrapping */
+                state->word_wrapping = 0;
+                break;
+
+            case 'h':
+                /* print help string and exit */
+                printf("Usage: fv <filename>[:line-number] [-l] [-w] [-h] [-v]\n");
+                quit(state, NULL, EXIT_SUCCESS, 0);
+
+            case 'v':
+                /* print version and copyright information */
+                printf("%s", VERSION_STR);
+                quit(state, NULL, EXIT_SUCCESS, 0);
+
+            default:
+                quit(state, NULL, EXIT_SUCCESS, 0);
+        }
+    }
+    if (optind < argc) {
+        state->filename = argv[optind];
+    } else {
+        printf("A filename is required. See fv -h for usage\n");
         exit(EXIT_FAILURE);
     }
-    state->filename = argv[1];
 }
 
 /* Initialises the config struct */
@@ -92,9 +126,9 @@ static int get_window_size(int *rows, int *cols)
 }
 
 /* stores original termios struct and switches terminal raw mode.
- * If any syscall fails, this function calls the DIE macro
+ * If any syscall fails, this function exits using quit()
  */
-static void enable_raw_mode(fv_state *state)
+static void prepare_terminal(fv_state *state)
 {
     /* switch to alternate screen buffer */
     write(STDOUT_FILENO, "\x1b[?1049h", 8);
@@ -115,7 +149,7 @@ static void enable_raw_mode(fv_state *state)
 
 /* disable raw mode and switch back to original screen buffer. Returns 0 on
  * success and -1 on failure */
-static int disable_raw_mode(fv_state *state)
+static int restore_terminal(fv_state *state)
 {
     if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &state->orig) == -1)
         return -1;
@@ -132,20 +166,21 @@ static int disable_raw_mode(fv_state *state)
  */
 void quit(fv_state *state, char *msg, int exit_code, int switch_back)
 {
-    if (state->f.contents == NULL)
-        return ;
-    int i = 0;
-    for(i = 0; i < state->f.line_count; i++) {
-        free(state->f.contents[i]->line);
-        free(state->f.contents[i]);
+    if (state->f.contents != NULL) {
+        int i = 0;
+        for(i = 0; i < state->f.line_count; i++) {
+            free(state->f.contents[i]->line);
+            free(state->f.contents[i]);
+        }
     }
+
     /* restore terminal */
     if (switch_back) {
         clear_screen();
-        disable_raw_mode(state);
-
+        restore_terminal(state);
     }
-    /* msg is not NULL (an error occured). Print the error and exit */
+
+    /* msg is not NULL (an error occured). Print the error */
     if (msg) {
         fprintf(stderr, "ERROR: %s\n", msg);
         fprintf(stderr, "ERRNO: %d (%s)", errno, strerror(errno));

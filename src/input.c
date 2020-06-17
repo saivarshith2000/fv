@@ -154,7 +154,7 @@ static void handle_basic_input(int key, fv_state *state)
             return ;
 
         case 'q':
-            quit(state, "", EXIT_SUCCESS, 1);
+            quit(state, NULL, EXIT_SUCCESS, 1);
     }
 }
 

@@ -22,6 +22,11 @@
    SOFTWARE.
 */
 
+/* feature test macros for getline() */
+#define _DEFAULT_SOURCE
+#define _BSD_SOURCE
+#define _GNU_SOURCE
+
 #include <string.h>
 #include <stdlib.h>
 #include <sys/stat.h>

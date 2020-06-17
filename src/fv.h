@@ -38,7 +38,11 @@ struct fv_state {
 
     /* File variables */
     char *filename;
-    struct fv_file f;       /* pointer to the file struct. see src/file.h */
+    struct fv_file f;        /* pointer to the file struct. see src/file.h */
+
+    /* user options */
+    int line_numbering;
+    int word_wrapping;
 
     /* Input prompt variables */
     char *prompt;            /* prompt below status bar */
