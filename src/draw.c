@@ -125,7 +125,7 @@ void draw_rows(fv_state *state)
         dynbuf_insert(&dyn, "\x1b[K", 3);
         /* draw line number */
         int numlen = 1;
-        if (state->enable_linenum) {
+        if (state->disable_linenum == 0) {
             char num[linenum_padding + 3];
             sprintf(num, "%*d| ", linenum_padding, i + 1);
             numlen = strlen(num);

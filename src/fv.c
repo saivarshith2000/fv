@@ -72,7 +72,7 @@ static void parse_args(int argc, char *argv[])
         switch(opt) {
             case 'l':
                 /* disable line numbering */
-                state.enable_linenum = 0;
+                state.disable_linenum = 1;
                 break;
 
             case 'h':
