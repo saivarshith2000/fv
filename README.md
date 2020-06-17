@@ -1,5 +1,5 @@
 # fv - a command line file pager.
-[![Build Status](https://travis-ci.com/saivarshith2000/fv.svg?branch=master)](https://travis-ci.com/saivarshith2000/fv)
+![build](https://github.com/saivarshith2000/fv/workflows/build/badge.svg)
 [![GitHub license](https://img.shields.io/github/license/saivarshith2000/fv)](https://github.com/saivarshith2000/fv/blob/master/LICENSE)  
 
 fv is a simple command line file pager written as a learning exercise.
