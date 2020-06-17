@@ -4,14 +4,19 @@
 
 fv is a simple command line file pager written as a learning exercise.
 
-## Installation
-You'll need a C compiler to build fv. The man pages are installed to /usr/local/man/man1 by default.
+## Building
+You'll need a C compiler to build fv.
 ```
-1. git clone https://github.com/saivarshith2000/fv.git && cd fv
-2. make install (default installation)
-3. make install CC=<your compiler> MAN_INS_PATH=<your manpage location>
+git clone https://github.com/saivarshith2000/fv.git
+cd fv && make
 ```
-Note: fv is tested on linux systems only. It will not work on windows.
+
+## Install
+After building fv, you can install it with ``` make install ```. By default fv is installed
+to ``` /usr/local/bin/ ``` and the man page is installed to ``` /usr/local/man/man1/ ```. To modify these variables
+you can tweak the Makefile.
+
+**Note: fv is tested on linux systems only. It will NOT work on windows.**
 
 ## Usage
 ```
@@ -20,7 +25,7 @@ fv <filename>[:<line-number>] [-l] [-w] [-h] [-v]
     <filename>[:<line-number>]
         Open file <filename>. To open the file at a specific line append ':' and the line-number to filename.
     -l disable line numbers.
-    -f enable line folding.
+    -f disable line folding.
     -h show usage.
     -v print version.
 ```
