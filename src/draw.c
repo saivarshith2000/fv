@@ -30,38 +30,38 @@
 
 /* Dynamic character buffer data structure. Multiple write()s cause a flickering effect. To avoid
  * this all the data to be written is stored in a dynamic buffer and written in one go */
-struct dynbuf {
+struct dynbuf_char {
     char *buf;   /* pointer to buffer */
     int ptr;     /* pointer to the first empty space in buffer */
     int size;    /* length of buffer */
 };
-#define DYNBUF_CHUNK_SIZE 1024
+#define dynbuf_char_CHUNK_SIZE 1024
 
-/* simple macro to init a dynbuf */
-#define DYNBUF_INIT {malloc(DYNBUF_CHUNK_SIZE), 0, DYNBUF_CHUNK_SIZE}
+/* simple macro to init a dynbuf_char */
+#define dynbuf_char_INIT {malloc(dynbuf_char_CHUNK_SIZE), 0, dynbuf_char_CHUNK_SIZE}
 
-/* inserts str into dynbuf. Returns 0 on success and -1 otherwise */
-int dynbuf_insert(struct dynbuf *dyn, const char *str, int len)
+/* inserts str into dynbuf_char. Returns 0 on success and -1 otherwise */
+int dynbuf_char_insert(struct dynbuf_char *dyn, const char *str, int len)
 {
     if (dyn == NULL || dyn->buf == NULL)
         return -1;
     if (dyn->size - dyn->ptr < len) {
         /* realloc() a new chunk if buffer runs out of memory */
-        char *newmem = realloc(dyn->buf, dyn->size + DYNBUF_CHUNK_SIZE);
+        char *newmem = realloc(dyn->buf, dyn->size + dynbuf_char_CHUNK_SIZE);
         if (newmem == NULL) {
             /* realloc failed */
             free(dyn->buf);
             exit(EXIT_FAILURE);
         }
         dyn->buf = newmem;
-        dyn->size += DYNBUF_CHUNK_SIZE;
+        dyn->size += dynbuf_char_CHUNK_SIZE;
     }
     memcpy(dyn->buf + dyn->ptr, str, len);
     dyn->ptr += len;
     return 0;
 }
 
-void dynbuf_free(struct dynbuf *dyn)
+void dynbuf_char_free(struct dynbuf_char *dyn)
 {
     free(dyn->buf);
 }
@@ -83,20 +83,20 @@ static void move_cursor(int row, int col)
 /* draws a status bar at the bottom of the screen */
 static void status_bar(fv_state *state)
 {
-    struct dynbuf dyn = DYNBUF_INIT;
+    struct dynbuf_char dyn = dynbuf_char_INIT;
     /* invert colors */
-    dynbuf_insert(&dyn, "\x1b[7m", 4);
+    dynbuf_char_insert(&dyn, "\x1b[7m", 4);
     char status[state->tcols + 16];
     sprintf(status, " File: %s [%d/%d]", state->filename, state->voffset + 1, state->f.line_count);
-    dynbuf_insert(&dyn, status, strlen(status));
+    dynbuf_char_insert(&dyn, status, strlen(status));
     /* fill out bar with spaces */
     int i = 0;
     int space = state->tcols - strlen(status);
     while(i++ < space)
-        dynbuf_insert(&dyn, " ", 1);
-    dynbuf_insert(&dyn, "\x1b[27m\r\n", 7);
+        dynbuf_char_insert(&dyn, " ", 1);
+    dynbuf_char_insert(&dyn, "\x1b[27m\r\n", 7);
     write(STDOUT_FILENO, dyn.buf, dyn.ptr);
-    dynbuf_free(&dyn);
+    dynbuf_char_free(&dyn);
 }
 
 /* draws the prompt below status bar */
@@ -112,24 +112,24 @@ static void prompt(fv_state *state)
 /* draw rows */
 void draw_rows(fv_state *state)
 {
-    struct dynbuf dyn = DYNBUF_INIT;
+    struct dynbuf_char dyn = dynbuf_char_INIT;
     /* last 3 rows are for - padding, status bar, prompt */
     int rows = state->trows - 3;
     frow **contents = state->f.contents;
-    int linenum_padding = state->f.line_count_digs;
+    int linenum_padding = state->f.linenum_digs;
     int line_count = state->f.line_count;
     int lines_drawn = 0;
     int i = state->voffset;
     while(lines_drawn < rows && i < line_count) {
         /* clear line */
-        dynbuf_insert(&dyn, "\x1b[K", 3);
+        dynbuf_char_insert(&dyn, "\x1b[K", 3);
         /* draw line number */
         int numlen = 1;
         if (state->disable_linenum == 0) {
-            char num[linenum_padding + 3];
-            sprintf(num, "%*d| ", linenum_padding, i + 1);
+            char num[linenum_padding + LINENUM_PAD_CHARS];
+            sprintf(num, " %*d | ", linenum_padding, i + 1);
             numlen = strlen(num);
-            dynbuf_insert(&dyn, num, numlen);
+            dynbuf_char_insert(&dyn, num, numlen);
         }
         /* draw a line only if it should be visible */
         if (state->hoffset < contents[i]->len){
@@ -137,15 +137,15 @@ void draw_rows(fv_state *state)
             int linelen = contents[i]->len - state->hoffset;
             if (linelen > state->tcols - numlen)
                 linelen = state->tcols - numlen;
-            dynbuf_insert(&dyn, contents[i]->line + state->hoffset, linelen);
+            dynbuf_char_insert(&dyn, contents[i]->line + state->hoffset, linelen);
         }
         /* draw newline and carriage return */
-        dynbuf_insert(&dyn, "\r\n", 2);
+        dynbuf_char_insert(&dyn, "\r\n", 2);
         i++;
         lines_drawn++;
     }
     write(STDIN_FILENO, dyn.buf, dyn.ptr);
-    dynbuf_free(&dyn);
+    dynbuf_char_free(&dyn);
 }
 
 /* refreshes terminal screen. This function is called on every valid input */

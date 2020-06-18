@@ -34,6 +34,9 @@
 #include "fv_file.h"
 #include "fv.h"
 
+/* number of new rows allocated when filerow dynamic array expands */
+#define FROW_BLOCK_SIZE 64
+
 /* counts the number of digits in n */
 static int count_digs(int n)
 {
@@ -61,8 +64,8 @@ static int verfiy_file(char *filename)
 /* inserts a new row into the dynamic contents array */
 static void insert_row(struct fv_file *f, frow *row)
 {
-    if (f->line_count == f->line_capacity) {
-        struct frow **newmem = realloc(f->contents, sizeof(struct filerow*) * (f->line_capacity + ROW_STEP));
+    if (f->line_count == f->contents_cap) {
+        struct frow **newmem = realloc(f->contents, sizeof(struct filerow*) * (f->contents_cap + FROW_BLOCK_SIZE));
         if (newmem == NULL) {
             /* realloc failed */
             free(f->contents);
@@ -70,7 +73,7 @@ static void insert_row(struct fv_file *f, frow *row)
             exit(EXIT_FAILURE);
         }
         f->contents = newmem;
-        f->line_capacity += ROW_STEP;
+        f->contents_cap += FROW_BLOCK_SIZE;
     }
     f->contents[f->line_count++] = row;
     return ;
@@ -96,7 +99,7 @@ static int read_file(FILE *fptr, fv_file *f)
             max_linelen = linelen;
     }
     f->max_linelen = max_linelen;
-    f->line_count_digs = count_digs(f->line_count);
+    f->linenum_digs = count_digs(f->line_count);
     free(line);
     return 0;
 }
@@ -123,8 +126,10 @@ int handle_file(char *filename, fv_file *f)
         return -1;
     }
     f->filename_len = strlen(filename);
-    f->contents = malloc(sizeof(struct filerow * ) * ROW_STEP);
-    f->line_capacity = ROW_STEP;
+    /* initialise contents array */
+    f->contents = malloc(sizeof(struct filerow * ) * FROW_BLOCK_SIZE);
+    f->contents_cap = FROW_BLOCK_SIZE;
+    f->line_count = 0;
     if(read_file(fptr, f) == -1) {
         fclose(fptr);
         fprintf(stderr, "Failed to read file %s\n", filename);

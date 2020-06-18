@@ -104,7 +104,7 @@ static void scroll(fv_state *state, int n, enum scroll_dir dir)
             return ;
 
         case SCR_LEFT:
-            if (state->f.max_linelen <= state->tcols - state->f.line_count_digs - 2)
+            if (state->f.max_linelen <= state->tcols - state->f.linenum_digs - 2)
                 return ;
             if (state->hoffset < n)
                 state->hoffset = 0;
@@ -113,7 +113,7 @@ static void scroll(fv_state *state, int n, enum scroll_dir dir)
             return ;
 
         case SCR_RIGHT:
-            if (state->f.max_linelen <= state->tcols - state->f.line_count_digs - 2)
+            if (state->f.max_linelen <= state->tcols - state->f.linenum_digs - 2)
                 return  ;
             if (state->hoffset + n > state->f.max_linelen)
                 state->hoffset = state->f.max_linelen;
@@ -168,14 +168,6 @@ static void handle_basic_input(int key, fv_state *state)
     }
 }
 
-/* handles user input accumilated in the prompt */
-static void handle_search_input(int key, fv_state *state)
-{
-    if (key != '\r' && key != '\n') {
-        state->prompt[state->prompt_idx++] = key;
-    }
-}
-
 /* handles numeric input for movement */
 static void handle_numeric_input(int key, fv_state *state)
 {
@@ -209,10 +201,6 @@ static void handle_numeric_input(int key, fv_state *state)
         case 'k':
             scroll(state, n, SCR_UP);
             break;
-
-        case 'l':
-            scroll(state, n, SCR_RIGHT);
-            break;
     }
     clear_prompt(state);
 }
@@ -232,8 +220,6 @@ void process_input(fv_state *state)
     if (state->prompt_idx == 0) {
         if (IS_NUM(key)) {
             handle_numeric_input(key, state);
-        } else if (key == '/') {
-            handle_search_input(key, state);
         } else {
             handle_basic_input(key, state);
         }
@@ -241,9 +227,7 @@ void process_input(fv_state *state)
     }
 
     /* if prompt is not empty */
-    if (state->prompt[0] == '/') {
-        handle_search_input(key, state);
-    } else if (IS_NUM(state->prompt[0])) {
+    if (IS_NUM(state->prompt[0])) {
         handle_numeric_input(key, state);
     } else {
         /* invalid input */

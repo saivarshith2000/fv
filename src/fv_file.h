@@ -28,7 +28,7 @@
 #define _GNU_SOURCE
 #include <stdio.h>
 
-#define ROW_STEP 64
+#define LINENUM_PAD_CHARS 4     /* padding characters around line number */
 
 struct frow {
     char *line;
@@ -39,10 +39,10 @@ typedef struct frow frow;
 struct fv_file {
     int filename_len;           /* strlen() of the filename */
     int line_count;             /* total number of lines in the file */
-    int line_count_digs;        /* number of digits in line count */
+    int linenum_digs;           /* number of digits in line count */
     int max_linelen;            /* maximum width of all the lines in the file */
     frow **contents;            /* dynamic array of filerows */
-    int line_capacity;          /* current capacity of the contents array */
+    int contents_cap;           /* current capacity of the contents array */
 };
 typedef struct fv_file fv_file;
 
