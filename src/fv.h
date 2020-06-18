@@ -31,10 +31,10 @@
 /* This struct contains all the state information at one place */
 struct fv_state {
     /* Terminal variables */
-    struct termios orig;     /* termios struct before going into raw mode */
-    int trows, tcols;        /* rows and columns of the terminal screen */
-    int voffset;             /* vertical offset. Used in vertical scrolling */
-    int hoffset;             /* horizontal offset. Used in horizontal scrolling */
+    struct termios orig;              /* termios struct before going into raw mode */
+    unsigned int trows, tcols;        /* rows and columns of the terminal screen */
+    unsigned int voffset;             /* vertical offset. Used in vertical scrolling */
+    unsigned int hoffset;             /* horizontal offset. Used in horizontal scrolling */
 
     /* File variables */
     char *filename;
@@ -44,8 +44,8 @@ struct fv_state {
     int disable_linenum;
 
     /* Input prompt variables */
-    char *prompt;            /* prompt below status bar */
-    int prompt_idx;          /* index of the next character in prompt */
+    char *prompt;                     /* prompt below status bar */
+    unsigned int prompt_idx;          /* index of the next character in prompt */
 };
 typedef struct fv_state fv_state;
 

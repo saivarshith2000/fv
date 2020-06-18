@@ -28,6 +28,8 @@
 
 #include "draw.h"
 
+#define MAX_FILENAME_LEN 32        /* maximum length of filename in status bar */
+
 /* Dynamic character buffer data structure. Multiple write()s cause a flickering effect. To avoid
  * this all the data to be written is stored in a dynamic buffer and written in one go */
 struct dynbuf_char {
@@ -39,6 +41,7 @@ struct dynbuf_char {
 
 /* simple macro to init a dynbuf_char */
 #define dynbuf_char_INIT {malloc(dynbuf_char_CHUNK_SIZE), 0, dynbuf_char_CHUNK_SIZE}
+
 
 /* inserts str into dynbuf_char. Returns 0 on success and -1 otherwise */
 int dynbuf_char_insert(struct dynbuf_char *dyn, const char *str, int len)
@@ -87,7 +90,12 @@ static void status_bar(fv_state *state)
     /* invert colors */
     dynbuf_char_insert(&dyn, "\x1b[7m", 4);
     char status[state->tcols + 16];
-    sprintf(status, " File: %s [%d/%d]", state->filename, state->voffset + 1, state->f.line_count);
+    if (state->f.filename_len > MAX_FILENAME_LEN) {
+        char *filename = state->filename + state->f.filename_len - 1 - MAX_FILENAME_LEN;
+        sprintf(status, " File: ...%*s [%d/%d]", MAX_FILENAME_LEN, filename, state->voffset + 1, state->f.line_count);
+    } else {
+        sprintf(status, " File: %s [%d/%d]", state->filename, state->voffset + 1, state->f.line_count);
+    }
     dynbuf_char_insert(&dyn, status, strlen(status));
     /* fill out bar with spaces */
     int i = 0;
@@ -117,9 +125,9 @@ void draw_rows(fv_state *state)
     int rows = state->trows - 3;
     frow **contents = state->f.contents;
     int linenum_padding = state->f.linenum_digs;
-    int line_count = state->f.line_count;
-    int lines_drawn = 0;
-    int i = state->voffset;
+    unsigned int line_count = state->f.line_count;
+    unsigned int lines_drawn = 0;
+    unsigned int i = state->voffset;
     while(lines_drawn < rows && i < line_count) {
         /* clear line */
         dynbuf_char_insert(&dyn, "\x1b[K", 3);

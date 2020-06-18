@@ -36,6 +36,7 @@ G - scroll to bottom of the file
 $ - scroll to end of the largest line
 ^ - scroll to start of line
 
+<num>RETURN - scrolls to <num> line number.
 <num><key>RETURN - equivalent to pressing <key> <num> times where <key> is one of h,j,k,l.
 ```
 
