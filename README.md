@@ -37,6 +37,7 @@ $ - scroll to end of the largest line
 ^ - scroll to start of line
 
 <num><key>RETURN - equivalent to pressing <key> <num> times where <key> is one of h,j,k,l.
+```
 
 Note: All the above information can be accessed with ```man fv``` command after installing fv.
 
