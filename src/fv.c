@@ -111,13 +111,6 @@ static void parse_args(int argc, char *argv[])
     }
 }
 
-/* CTRL+Z handler */
-static void ctrlz_handler(){
-    clear_screen();
-    write(STDOUT_FILENO, "\x1b[?1049l", 8);
-    return ;
-}
-
 /* CTRL+C handler */
 static void ctrlc_handler(){
     quit(&state, NULL, EXIT_SUCCESS, 1);
@@ -128,8 +121,6 @@ static void init_fv()
 {
     /* register signal handlers */
     signal(SIGWINCH, get_window_size);
-    signal(SIGTSTP, SIG_DFL);
-    signal(SIGTSTP, ctrlz_handler);
     signal(SIGINT, ctrlc_handler);
 
     /* obtain window size */
@@ -171,7 +162,6 @@ static void prepare_terminal()
     raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
     raw.c_oflag &= ~(OPOST);
     raw.c_cflag |= (CS8);
-    /* raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG); */
     raw.c_lflag &= ~(ECHO | ICANON | IEXTEN);
     raw.c_cc[VMIN] = 0;
     raw.c_cc[VTIME] = 1;
