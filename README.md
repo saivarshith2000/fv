@@ -43,7 +43,7 @@ $ - scroll to end of the largest line
 Note: All the above information can be accessed with ```man fv``` command after installing fv.
 
 ## Screencap
-<TODO>
+![Screencap](https://github.com/saivarshith2000/fv/img/screencap.png)
 
 ## LICENSE
 fv is licensed under MIT License. See [LICENSE](https://github.com/saivarshith2000/fv/blob/master/LICENSE
